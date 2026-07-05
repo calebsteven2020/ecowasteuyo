@@ -20,7 +20,7 @@ const STATS = [
 ];
 
 const STEPS = [
-  { n: "01", title: "Create account", body: "Sign up in under 60 seconds. No paperwork, no stress — just your name, email, and street.", icon: CheckCircle2 },
+  { n: "01", title: "Create account", body: "Sign up in under 60 seconds. No paperwork, no stress — simply provide your name, email, and service address.", icon: CheckCircle2 },
   { n: "02", title: "Subscribe to a plan", body: "Pick Basic or Commercial. We auto-charge you monthly and show up on your fixed pickup days — no booking needed.", icon: Calendar },
   { n: "03", title: "We collect & report", body: "Verified agents arrive, collect, and send you an impact report — CO₂ saved, trees protected.", icon: Recycle },
 ];
@@ -224,7 +224,7 @@ function PublicHome() {
               Pick a plan. We handle the rest.
             </h2>
             <p style={{ color: "#5a6e5c", fontSize: "0.9rem", marginTop: "0.75rem", maxWidth: "480px", marginLeft: "auto", marginRight: "auto" }}>
-              No per-pickup booking. Subscribe once, billed monthly, and we show up on your fixed pickup days automatically.
+              No per-pickup booking. Subscribe once monthly, and we show up on your fixed pickup days automatically.
             </p>
           </div>
 

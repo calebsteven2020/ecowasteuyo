@@ -1,0 +1,17 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Global interaction styles */
+button, [role="button"], a, label[for], input[type="submit"], input[type="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Smooth hover transitions on all interactive elements */
+button {
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}

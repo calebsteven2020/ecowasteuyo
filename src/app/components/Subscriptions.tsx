@@ -17,7 +17,7 @@ const PLANS = {
     label: "Basic Plan",
     sub: "Residential",
     icon: Home,
-    price: 8000, // ₦8,000 / month
+    price: 8000, // ₦3,000 – ₦5,000 / month
     priceRange: "₦8,000",
     pickupsPerWeek: 1,
     perks: ["1 fixed pickup every week (4x a month)", "Automatic monthly billing", "WhatsApp/SMS pickup reminders"],
@@ -26,7 +26,7 @@ const PLANS = {
     label: "Commercial Plan",
     sub: "Shops / Offices",
     icon: Building2,
-    price: 15000, // ₦15,000 / month
+    price: 15000, // ₦10,000 – ₦20,000 / month
     priceRange: "₦15,000",
     pickupsPerWeek: 2,
     perks: ["2 fixed pickups every week", "Priority truck routing", "Daily commercial pickup available"],
@@ -65,7 +65,67 @@ export function Subscriptions() {
   const [showBulk, setShowBulk] = useState(false);
   const [showReceiptUpload, setShowReceiptUpload] = useState(false);
   const [showChangePlan, setShowChangePlan] = useState(false);
+  const [pendingUpgrade, setPendingUpgrade] = useState(false);
   const [payments, setPayments] = useState<any[]>([]);
+
+  // Run the upgrade payment AFTER the ChangePlanModal has been closed and
+  // fully unmounted. Calling payWithKorapay while a modal with z-50 + backdrop
+  // blur is still mounted causes Korapay's widget to open behind the overlay
+  // and immediately get dismissed. useEffect guarantees the DOM has updated
+  // (modal gone) before we touch Korapay.
+  useEffect(() => {
+    if (!pendingUpgrade || !user || !sub) return;
+    setPendingUpgrade(false);
+
+    const plan = PLANS.commercial;
+    const reference = newPaymentReference("UPG");
+    let handled = false;
+    setSubscribing(true);
+
+    payWithKorapay({
+      amount: plan.price,
+      email: user.email!,
+      reference,
+      narration: "EcoWaste upgrade to Commercial Plan",
+      onSuccess: async (data) => {
+        if (handled) return;
+        handled = true;
+        const todayDate = new Date();
+        const today = todayDate.toISOString().split("T")[0];
+        const nextBillingDate = new Date(todayDate);
+        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+        const nextBilling = nextBillingDate.toISOString().split("T")[0];
+        const updates = {
+          plan_type: "commercial" as PlanKey,
+          price: plan.price,
+          pickups_per_week: plan.pickupsPerWeek,
+          last_payment_date: today,
+          next_billing_date: nextBilling,
+          status: "active" as const,
+          manifest_status: "green" as const,
+        };
+        const { error } = await supabase.from("subscriptions").update(updates).eq("id", sub.id);
+        if (error) { toast.error("Payment succeeded but plan update failed: " + error.message); setSubscribing(false); return; }
+        await supabase.from("payments").insert({
+          user_id: user.id, purpose: "subscription", subscription_id: sub.id,
+          amount: plan.price, channel: "korapay", status: "success",
+          korapay_reference: data?.reference ?? reference,
+        });
+        await supabase.from("notifications").insert({
+          user_id: user.id,
+          title: "Plan upgraded ✅",
+          message: `You're now on the Commercial Plan (${formatNaira(plan.price)}/month). Next payment on ${nextBilling}.`,
+          type: "success",
+        });
+        setSub({ ...sub, ...updates });
+        fetchPayments();
+        toast.success("Upgraded to Commercial Plan.");
+        setSubscribing(false);
+      },
+      onFailed: () => { if (!handled) { handled = true; toast.error("Payment failed. Please try again."); setSubscribing(false); } },
+      onClose: () => { if (!handled) setSubscribing(false); },
+    }).catch(() => { toast.error("Couldn't open Korapay. Please try again."); setSubscribing(false); });
+  }, [pendingUpgrade]);
 
   const fetchSub = async () => {
     if (!user) return;
@@ -510,7 +570,7 @@ export function Subscriptions() {
         <ChangePlanModal
           sub={sub}
           onClose={() => setShowChangePlan(false)}
-          onChanged={(updated) => { setSub({ ...sub, ...updated }); setShowChangePlan(false); }}
+          onUpgradeConfirmed={() => setPendingUpgrade(true)}
         />
       )}
     </div>
@@ -518,81 +578,14 @@ export function Subscriptions() {
 }
 
 // ── Change Plan modal — enforces downgrade/upgrade rules ──
-function ChangePlanModal({ sub, onClose, onChanged }: { sub: Subscription; onChanged: (updated: Partial<Subscription>) => void; onClose: () => void }) {
-  const { user } = useAuth();
-  const [target, setTarget] = useState<PlanKey>(sub.plan_type === "basic" ? "commercial" : "basic");
-  const [saving, setSaving] = useState(false);
+function ChangePlanModal({ sub, onClose, onUpgradeConfirmed }: { sub: Subscription; onClose: () => void; onUpgradeConfirmed: () => void }) {
+  const isDowngrade = sub.plan_type === "commercial";
 
-  // Downgrade is blocked entirely
-  const isDowngrade = sub.plan_type === "commercial" && target === "basic";
-
-  // Upgrade from basic → commercial: user must pay the full commercial price now
-  // and the billing cycle restarts from today.
-  const isUpgrade = sub.plan_type === "basic" && target === "commercial";
-
-  const confirm = async () => {
+  const confirm = () => {
     if (isDowngrade) return;
-    setSaving(true);
-
-    if (isUpgrade) {
-      const plan = PLANS.commercial;
-      const reference = newPaymentReference("UPG");
-      let handled = false;
-
-      // Close the modal BEFORE opening Korapay — the modal's backdrop and
-      // blur overlay sit at z-50 and block the payment widget from rendering
-      // on top. Closing first lets Korapay render unobstructed.
-      onClose();
-
-      try {
-        await payWithKorapay({
-          amount: plan.price,
-          email: user!.email!,
-          reference,
-          narration: `EcoWaste upgrade to Commercial Plan`,
-          onSuccess: async (data) => {
-            if (handled) return;
-            handled = true;
-            const todayDate = new Date();
-            const today = todayDate.toISOString().split("T")[0];
-            const nextBillingDate = new Date(todayDate);
-            nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-            const nextBilling = nextBillingDate.toISOString().split("T")[0];
-
-            const updates = {
-              plan_type: "commercial" as PlanKey,
-              price: plan.price,
-              pickups_per_week: plan.pickupsPerWeek,
-              last_payment_date: today,
-              next_billing_date: nextBilling,
-              status: "active" as const,
-              manifest_status: "green" as const,
-            };
-            const { error } = await supabase.from("subscriptions").update(updates).eq("id", sub.id);
-            if (error) { toast.error("Payment succeeded but plan update failed: " + error.message); return; }
-
-            await supabase.from("payments").insert({
-              user_id: user!.id, purpose: "subscription", subscription_id: sub.id,
-              amount: plan.price, channel: "korapay", status: "success",
-              korapay_reference: data?.reference ?? reference,
-            });
-            await supabase.from("notifications").insert({
-              user_id: user!.id,
-              title: "Plan upgraded ✅",
-              message: `You're now on the Commercial Plan (${formatNaira(plan.price)}/month). Next payment on ${nextBilling}.`,
-              type: "success",
-            });
-            toast.success("Upgraded to Commercial Plan.");
-            onChanged(updates);
-          },
-          onFailed: () => { if (!handled) { handled = true; toast.error("Payment failed. Please try again."); } },
-          onClose: () => { /* modal already closed, nothing to do */ },
-        });
-      } catch {
-        toast.error("Couldn't open Korapay. Please try again.");
-      }
-      setSaving(false);
-    }
+    // Close modal first, then parent's useEffect fires Korapay after unmount
+    onClose();
+    onUpgradeConfirmed();
   };
 
   return (
@@ -641,8 +634,8 @@ function ChangePlanModal({ sub, onClose, onChanged }: { sub: Subscription; onCha
                   Upgrading requires paying the full Commercial plan amount now. Your billing cycle restarts today — you will be charged again in one month.
                 </p>
               </div>
-              <button onClick={confirm} disabled={saving} className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: "#008751", color: "#fff" }}>
-                {saving ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : `Pay ${formatNaira(PLANS.commercial.price)} & upgrade`}
+              <button onClick={confirm} className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
+                Pay {formatNaira(PLANS.commercial.price)} &amp; upgrade to Commercial
               </button>
             </>
           )}

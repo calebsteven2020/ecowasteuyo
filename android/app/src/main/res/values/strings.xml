@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Eco Waste Uyo</string>
+    <string name="title_activity_main">Eco Waste Uyo</string>
+    <string name="package_name">com.ecowaste.uyo</string>
+    <string name="custom_url_scheme">com.ecowaste.uyo</string>
+</resources>

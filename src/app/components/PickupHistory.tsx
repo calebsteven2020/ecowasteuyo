@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 
 const formatNaira = (n: number) => "₦" + n.toLocaleString("en-NG");
 
-type TabKey = "overview" | "payments" | "pickups";
+type TabKey = "overview" | "payments" | "pickups" | "cleanouts";
 
 export function PickupHistory() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export function PickupHistory() {
   const [sub, setSub] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [pickups, setPickups] = useState<any[]>([]);
+  const [cleanouts, setCleanouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,10 +24,12 @@ export function PickupHistory() {
       supabase.from("subscriptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1),
       supabase.from("payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("pickups").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-    ]).then(([{ data: s }, { data: pay }, { data: p }]) => {
+      supabase.from("bulk_cleanouts").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+    ]).then(([{ data: s }, { data: pay }, { data: p }, { data: c }]) => {
       setSub(s?.[0] ?? null);
       setPayments(pay ?? []);
       setPickups(p ?? []);
+      setCleanouts(c ?? []);
       setLoading(false);
     });
   }, [user]);
@@ -56,15 +59,16 @@ export function PickupHistory() {
 
       <div className="max-w-2xl mx-auto px-5">
         {/* Tabs */}
-        <div className="flex gap-2 mt-5 mb-5">
+        <div className="flex gap-2 mt-5 mb-5 overflow-x-auto">
           {([
             { key: "overview", label: "Overview" },
             { key: "payments", label: `Payments (${payments.length})` },
             { key: "pickups", label: `Pickups (${pickups.length})` },
+            { key: "cleanouts", label: `Clean-outs${cleanouts.length > 0 ? ` (${cleanouts.length})` : ""}${cleanouts.some(c => c.status === "quoted") ? " 💰" : ""}` },
           ] as { key: TabKey; label: string }[]).map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className="flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all"
-              style={{ background: tab === t.key ? "#0e1f0f" : "#fff", color: tab === t.key ? "#f7f5f0" : "#5a6e5c", border: "1px solid rgba(26,46,28,0.08)" }}>
+              className="flex-shrink-0 py-2.5 px-4 rounded-xl text-xs font-semibold transition-all"
+              style={{ background: tab === t.key ? "#0e1f0f" : "#fff", color: tab === t.key ? "#f7f5f0" : "#5a6e5c", border: "1px solid rgba(26,46,28,0.08)", cursor: "pointer" }}>
               {t.label}
             </button>
           ))}
@@ -234,6 +238,62 @@ export function PickupHistory() {
                         {p.actual_weight && <div><span style={{ color: "#5a6e5c" }}>Collected: </span><span style={{ color: "#008751", fontWeight: 600 }}>{p.actual_weight}kg</span></div>}
                         {p.price && <div><span style={{ color: "#5a6e5c" }}>Amount: </span><span style={{ color: "#1a2e1c", fontWeight: 600 }}>{formatNaira(p.price)}</span></div>}
                         <div className="col-span-2 truncate"><span style={{ color: "#5a6e5c" }}>Address: </span><span style={{ color: "#1a2e1c", fontWeight: 500 }}>{p.address}</span></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Clean-outs tab */}
+        {tab === "cleanouts" && (
+          <div className="pb-10">
+            {cleanouts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background: "#f0ece4" }}>
+                  <span style={{ fontSize: "1.5rem" }}>📦</span>
+                </div>
+                <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.875rem" }}>No clean-out requests yet</p>
+                <p style={{ color: "#9ba89a", fontSize: "0.78rem", marginTop: "0.3rem" }}>Request a one-time bulk clean-out from the Subscriptions page.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {cleanouts.map(c => {
+                  const statusMap: Record<string, { bg: string; color: string; label: string }> = {
+                    pending_quote: { bg: "#f0ece4", color: "#5a6e5c", label: "Awaiting quote" },
+                    quoted:        { bg: "#fff8e6", color: "#92400e", label: "Quote received 💰" },
+                    paid:          { bg: "#d4e8d5", color: "#1a2e1c", label: "Paid" },
+                    dispatched:    { bg: "#dce8dd", color: "#2d5230", label: "Agent dispatched" },
+                    completed:     { bg: "#d4e8d5", color: "#008751", label: "Completed ✓" },
+                    declined:      { bg: "#fde8e8", color: "#c0392b", label: "Declined" },
+                  };
+                  const s = statusMap[c.status] ?? statusMap.pending_quote;
+                  return (
+                    <div key={c.id} className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: c.status === "quoted" ? "1.5px solid rgba(245,158,11,0.4)" : "1px solid rgba(26,46,28,0.07)" }}>
+                      <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid rgba(26,46,28,0.06)" }}>
+                        <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.82rem" }}>Bulk Clean-out</p>
+                        <span style={{ background: s.bg, color: s.color, padding: "2px 10px", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 700 }}>{s.label}</span>
+                      </div>
+                      <div className="px-4 py-3 flex flex-col gap-1.5 text-xs">
+                        <div><span style={{ color: "#9ba89a" }}>Address: </span><span style={{ color: "#1a2e1c", fontWeight: 500 }}>{c.address}</span></div>
+                        {c.description && <div><span style={{ color: "#9ba89a" }}>Description: </span><span style={{ color: "#1a2e1c" }}>{c.description}</span></div>}
+                        <div><span style={{ color: "#9ba89a" }}>Requested: </span><span style={{ color: "#1a2e1c" }}>{new Date(c.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                        {c.status === "quoted" && c.quote_amount && (
+                          <div className="mt-2 pt-2.5 rounded-xl px-3 py-2.5" style={{ background: "#fff8e6", border: "1px solid rgba(245,158,11,0.2)" }}>
+                            <p style={{ color: "#92400e", fontSize: "0.7rem", fontWeight: 600 }}>YOUR QUOTE</p>
+                            <p style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 800, fontSize: "1.3rem", marginTop: "0.1rem" }}>
+                              {formatNaira(c.quote_amount)}
+                            </p>
+                            <p style={{ color: "#856404", fontSize: "0.7rem", marginTop: "0.2rem" }}>Pay before the truck is dispatched to your address.</p>
+                          </div>
+                        )}
+                        {c.photo_url && (
+                          <a href={c.photo_url} target="_blank" rel="noopener noreferrer">
+                            <img src={c.photo_url} alt="Junk photo" className="w-full h-28 object-cover rounded-xl mt-1" />
+                          </a>
+                        )}
                       </div>
                     </div>
                   );

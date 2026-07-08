@@ -15,7 +15,7 @@ interface Pickup {
   id: string; user_id: string; waste_type: string; address: string;
   pickup_date: string; pickup_time: string; status: string;
   estimated_weight?: number; actual_weight?: number;
-  notes?: string; photo_url?: string | null; price?: number | null; agent_name?: string | null; source?: string; created_at: string;
+  notes?: string; photo_url?: string | null; price?: number | null; agent_name?: string | null; created_at: string;
   profiles?: { full_name: string | null; phone: string | null; };
 }
 
@@ -288,17 +288,27 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
             <div className="flex items-center justify-between px-4 py-3 rounded-xl"
               style={{ background: "#e8f0e4", border: "1px solid rgba(0,135,81,0.15)" }}>
               <div>
-                <p style={{ color: "#5a6e5c", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em" }}>AMOUNT PAID</p>
+                <p style={{ color: "#5a6e5c", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em" }}>AMOUNT DUE ON PICKUP</p>
                 <p style={{ fontFamily: "var(--font-display)", color: "#008751", fontWeight: 800, fontSize: "1.3rem", marginTop: "0.1rem" }}>
                   {formatNaira(pickup.price)}
                 </p>
               </div>
               <span className="px-3 py-1.5 rounded-full text-xs font-semibold"
                 style={{ background: "#1a2e1c", color: "#85c48a" }}>
-                Cash paid online 💵
+                Cash on pickup 💵
               </span>
             </div>
           )}
+
+          {/* Directions link */}
+          <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickup.address + ", Nigeria")}`}
+            target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-90"
+            style={{ background: "#1a2e1c", color: "#f7f5f0", textDecoration: "none" }}>
+            📍 Get directions to this address
+            <ArrowUpRight className="w-4 h-4 ml-auto" />
+          </a>
+
           {/* Agent assignment */}
           <AgentAssign pickup={pickup} onAssigned={onAssigned} />
 
@@ -808,6 +818,9 @@ export function AdminDashboard() {
   const [viewReceipt, setViewReceipt] = useState<any | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
   const [urgentPickups, setUrgentPickups] = useState<any[]>([]);
+  const [billingSection, setBillingSection] = useState<"subs"|"payments"|"urgent"|"cleanouts">("subs");
+  const [billingSearch, setBillingSearch] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState<"all"|"success"|"pending"|"rejected">("all");
 
   const fetchBilling = async () => {
     // Self-healing: flip any subscription whose billing date has passed
@@ -1404,197 +1417,226 @@ export function AdminDashboard() {
           <AgentsManager pickups={pickups} subs={subs} />
         )}
 
-        {/* BILLING TAB — Financial Analytics: MRR, pending debts, subscriptions, bulk clean-out quoting */}
+        {/* BILLING TAB */}
         {activeTab === "billing" && (
           <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+
+            {/* MRR summary strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "MRR", value: "₦" + mrr.toLocaleString("en-NG"), sub: "monthly recurring revenue", bg: "#d4e8d5", ic: "#1a2e1c" },
-                { label: "Pending Debts", value: "₦" + pendingDebts.toLocaleString("en-NG"), sub: `${pastDueSubs.length} accounts past due`, bg: "#fde8e8", ic: "#c0392b" },
-                { label: "Basic Subscribers", value: basicCount, sub: "residential, ₦3k–5k/mo", bg: "#e8f0e4", ic: "#008751" },
-                { label: "Commercial Subscribers", value: commercialCount, sub: "shops/offices, ₦10k–20k/mo", bg: "#f0ece4", ic: "#5a6e5c" },
+                { label: "MRR", value: "₦" + mrr.toLocaleString("en-NG"), color: "#008751" },
+                { label: "Pending debts", value: "₦" + pendingDebts.toLocaleString("en-NG"), color: "#c0392b" },
+                { label: "Basic subscribers", value: basicCount, color: "#1a2e1c" },
+                { label: "Commercial", value: commercialCount, color: "#1a2e1c" },
               ].map(s => (
-                <div key={s.label} className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: s.bg }}>
-                    <span style={{ fontSize: "1.1rem" }}>💰</span>
-                  </div>
-                  <div style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", fontWeight: 700, color: "#1a2e1c" }}>{s.value}</div>
-                  <div style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.85rem", marginTop: "0.4rem" }}>{s.label}</div>
-                  <div style={{ color: "#5a6e5c", fontSize: "0.72rem" }}>{s.sub}</div>
+                <div key={s.label} className="rounded-2xl px-4 py-3" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                  <p style={{ color: "#9ba89a", fontSize: "0.65rem", letterSpacing: "0.05em" }}>{s.label.toUpperCase()}</p>
+                  <p style={{ fontFamily: "var(--font-display)", color: s.color, fontWeight: 800, fontSize: "1.25rem", marginTop: "0.2rem" }}>{s.value}</p>
                 </div>
               ))}
             </div>
 
-            {/* Subscribers — full detail cards */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
-                <div>
-                  <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700 }}>Subscriber List</h2>
-                  <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "0.1rem" }}>Click a subscriber to edit plan or pricing</p>
-                </div>
-                <button onClick={() => { setBillingLoading(true); fetchBilling(); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#f0ece4", color: "#1a2e1c" }}>
-                  <RefreshCw className="w-3 h-3" /> Refresh
+            {/* Section nav — big clickable buttons */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { key: "subs", label: "Subscriber List", count: subs.length, icon: "👥", color: "#008751", bg: "#e8f0e4" },
+                { key: "payments", label: "Payments", count: payments.length, icon: "💳", color: "#1a2e1c", bg: "#f0ece4" },
+                { key: "urgent", label: "Urgent Pickups", count: urgentPickups.length, icon: "⚡", color: "#c0392b", bg: "#fde8e8" },
+                { key: "cleanouts", label: "Bulk Clean-outs", count: cleanouts.length, icon: "📦", color: "#5a6e5c", bg: "#f0ece4" },
+              ].map(sec => (
+                <button key={sec.key} onClick={() => { setBillingSection(sec.key as any); setBillingSearch(""); setPaymentFilter("all"); }}
+                  className="flex flex-col items-start p-4 rounded-2xl text-left transition-all hover:scale-[0.98]"
+                  style={{ background: billingSection === sec.key ? "#0e1f0f" : "#fff", border: `1.5px solid ${billingSection === sec.key ? "#0e1f0f" : "rgba(26,46,28,0.08)"}`, cursor: "pointer" }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: billingSection === sec.key ? "rgba(247,245,240,0.1)" : sec.bg }}>
+                    <span style={{ fontSize: "1.1rem" }}>{sec.icon}</span>
+                  </div>
+                  <p style={{ color: billingSection === sec.key ? "#f7f5f0" : "#1a2e1c", fontWeight: 700, fontSize: "0.82rem" }}>{sec.label}</p>
+                  <p style={{ color: billingSection === sec.key ? "rgba(247,245,240,0.45)" : "#9ba89a", fontSize: "0.7rem", marginTop: "0.15rem" }}>{sec.count} total</p>
                 </button>
-              </div>
-
-              {billingLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-6 h-6 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
-                </div>
-              ) : subs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3" style={{ background: "#e8f0e4" }}>
-                    <Users className="w-6 h-6" style={{ color: "#008751" }} />
-                  </div>
-                  <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.875rem" }}>No subscribers yet</p>
-                  <p style={{ color: "#9ba89a", fontSize: "0.78rem", marginTop: "0.3rem" }}>Subscribers will appear here once customers sign up for a plan.</p>
-                </div>
-              ) : (
-                <div>
-                  {subs.map((s, i) => (
-                    <div key={s.id} onClick={() => setViewSub(s)}
-                      className="flex items-center gap-3 px-5 py-4 cursor-pointer transition-colors hover:bg-[#fafaf8]"
-                      style={{ borderBottom: i < subs.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
-                      {/* Avatar initial */}
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
-                        style={{ background: s.manifest_status === "green" ? "#e8f0e4" : "#fde8e8", color: s.manifest_status === "green" ? "#008751" : "#c0392b", fontFamily: "var(--font-display)" }}>
-                        {(s.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
-                      </div>
-                      {/* Name + email */}
-                      <div className="flex-1 min-w-0">
-                        <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.85rem" }}>{s.profiles?.full_name ?? "Unknown"}</p>
-                        <p style={{ color: "#9ba89a", fontSize: "0.72rem" }} className="truncate">{s.profiles?.email ?? "No email"}</p>
-                      </div>
-                      {/* Status dot + plan */}
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span style={{ padding: "2px 8px", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 700,
-                          background: s.manifest_status === "green" ? "#d4e8d5" : "#fde8e8",
-                          color: s.manifest_status === "green" ? "#1a2e1c" : "#c0392b", textTransform: "capitalize" as const }}>
-                          {s.manifest_status === "green" ? "Active" : "Overdue"}
-                        </span>
-                        <span style={{ color: "#9ba89a", fontSize: "0.7rem" }}>›</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
 
-            {/* Incoming payments — Korapay auto-recorded, bank transfers need review */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-              <div className="px-6 py-5" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
-                <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.05rem", fontWeight: 600 }}>Payments</h2>
-                <p style={{ color: "#5a6e5c", fontSize: "0.78rem" }}>
-                  {payments.length} total · {payments.filter(p => p.status === "pending").length} bank transfers awaiting review
-                </p>
-              </div>
-              {payments.length === 0 ? (
-                <p className="px-6 py-8 text-center" style={{ color: "#5a6e5c", fontSize: "0.85rem" }}>No payments recorded yet.</p>
-              ) : (
-                payments.map((p, i) => (
-                  <div key={p.id}
-                    onClick={() => p.channel === "bank_transfer" && setViewReceipt(p)}
-                    className="flex items-center gap-4 px-6 py-4"
-                    style={{ borderBottom: i < payments.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none", cursor: p.channel === "bank_transfer" ? "pointer" : "default" }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: p.channel === "korapay" ? "#e8f0e4" : "#f0ece4" }}>
-                      <span style={{ fontSize: "0.9rem" }}>{p.channel === "korapay" ? "💳" : "🏦"}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.85rem" }}>{p.profiles?.full_name ?? "Unknown"}</p>
-                      <p style={{ color: "#5a6e5c", fontSize: "0.72rem" }}>
-                        {p.channel === "korapay" ? "Korapay" : "Bank transfer"} · {p.purpose.replace("_", " ")} · {new Date(p.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.85rem" }}>₦{Number(p.amount).toLocaleString("en-NG")}</p>
-                      <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                        style={{
-                          background: p.status === "success" ? "#d4e8d5" : p.status === "rejected" || p.status === "failed" ? "#fde8e8" : "#fff3cd",
-                          color: p.status === "success" ? "#1a2e1c" : p.status === "rejected" || p.status === "failed" ? "#c0392b" : "#856404",
-                        }}>
-                        {p.status === "success" ? "CONFIRMED" : p.status === "rejected" ? "REJECTED" : p.status === "failed" ? "FAILED" : "REVIEW RECEIPT →"}
-                      </span>
-                    </div>
+            {/* ── Subscriber List ── */}
+            {billingSection === "subs" && (
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700 }}>Subscriber List</h2>
+                    <button onClick={() => { setBillingLoading(true); fetchBilling(); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#f0ece4", color: "#1a2e1c", cursor: "pointer" }}>
+                      <RefreshCw className="w-3 h-3" /> Refresh
+                    </button>
                   </div>
-                ))
-              )}
-            </div>
-
-            {/* Urgent pickups — paid instantly via Korapay, admin assigns agent */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-              <div className="px-6 py-5" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
-                <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.05rem", fontWeight: 600 }}>⚡ Urgent Pickups</h2>
-                <p style={{ color: "#5a6e5c", fontSize: "0.78rem" }}>On-demand ₦8,000 jobs — paid via Korapay · assign an agent below</p>
-              </div>
-              {urgentPickups.length === 0 ? (
-                <p className="px-6 py-8 text-center" style={{ color: "#5a6e5c", fontSize: "0.85rem" }}>No urgent pickups yet.</p>
-              ) : (
-                urgentPickups.map((p, i) => (
-                  <div key={p.id} className="px-6 py-4" style={{ borderBottom: i < urgentPickups.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div>
-                        <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.85rem" }}>{p.profiles?.full_name ?? "Unknown"}</p>
-                        <p style={{ color: "#5a6e5c", fontSize: "0.72rem" }}>{p.waste_type} · {p.pickup_date} · {p.pickup_time}</p>
-                        <p style={{ color: "#5a6e5c", fontSize: "0.72rem" }} className="truncate">{p.address}</p>
-                      </div>
-                      <span style={{
-                        background: p.status === "completed" ? "#d4e8d5" : p.status === "in_progress" ? "#fff3cd" : "#e8f0e4",
-                        color: p.status === "completed" ? "#1a2e1c" : p.status === "in_progress" ? "#856404" : "#2d5230",
-                        padding: "2px 10px", borderRadius: "9999px", fontSize: "0.75rem", fontWeight: 600, flexShrink: 0, textTransform: "capitalize" as const,
-                      }}>
-                        {p.status.replace("_", " ")}
-                      </span>
-                    </div>
-                    {/* Inline agent assign for urgent pickups */}
-                    <AgentAssign pickup={p} onAssigned={(id, agent) => {
-                      setUrgentPickups(prev => prev.map(u => u.id === id ? { ...u, agent_name: agent } : u));
-                    }} />
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Bulk clean-out requests — quote & approve */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-              <div className="px-6 py-5" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
-                <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.05rem", fontWeight: 600 }}>Bulk Clean-out Requests</h2>
-                <p style={{ color: "#5a6e5c", fontSize: "0.78rem" }}>One-time dispatches awaiting a custom quote</p>
-              </div>
-              {cleanouts.length === 0 ? (
-                <p className="px-6 py-8 text-center" style={{ color: "#5a6e5c", fontSize: "0.85rem" }}>No clean-out requests yet.</p>
-              ) : (
-                cleanouts.map((c, i) => (
-                  <div key={c.id} className="flex items-center gap-4 px-6 py-4" style={{ borderBottom: i < cleanouts.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
-                    {c.photo_url ? (
-                      <img src={c.photo_url} alt="junk" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#f0ece4" }}>📦</div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.85rem" }}>{c.profiles?.full_name ?? "Unknown"}</p>
-                      <p style={{ color: "#5a6e5c", fontSize: "0.72rem" }} className="truncate">{c.description} — {c.address}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      {c.status === "pending_quote" ? (
-                        quoting?.id === c.id ? (
-                          <div className="flex items-center gap-2">
-                            <input type="number" placeholder="₦ amount" value={quoteAmount} onChange={e => setQuoteAmount(e.target.value)}
-                              className="w-24 px-2 py-1.5 rounded-lg text-xs" style={{ background: "#f0ece4", border: "none", outline: "none" }} />
-                            <button onClick={() => sendQuote(c)} className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#008751", color: "#fff" }}>Send</button>
+                  <input placeholder="Search by name or email…" value={billingSearch} onChange={e => setBillingSearch(e.target.value)}
+                    style={{ width: "100%", background: "#f7f5f0", border: "1px solid rgba(26,46,28,0.1)", borderRadius: "10px", padding: "8px 12px", fontSize: "0.8rem", outline: "none", color: "#1a2e1c" }} />
+                </div>
+                {billingLoading ? (
+                  <div className="flex items-center justify-center py-10"><div className="w-6 h-6 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" /></div>
+                ) : (() => {
+                  const filtered = subs.filter(s => !billingSearch || (s.profiles?.full_name ?? "").toLowerCase().includes(billingSearch.toLowerCase()) || (s.profiles?.email ?? "").toLowerCase().includes(billingSearch.toLowerCase()));
+                  return filtered.length === 0 ? (
+                    <p className="px-5 py-8 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>{billingSearch ? "No subscribers match your search." : "No subscribers yet."}</p>
+                  ) : (
+                    <div>
+                      {filtered.map((s, i) => (
+                        <div key={s.id} onClick={() => setViewSub(s)} className="flex items-center gap-3 px-5 py-4 hover:bg-[#fafaf8] transition-colors" style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none", cursor: "pointer" }}>
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm"
+                            style={{ background: s.manifest_status === "green" ? "#e8f0e4" : "#fde8e8", color: s.manifest_status === "green" ? "#008751" : "#c0392b", fontFamily: "var(--font-display)" }}>
+                            {(s.profiles?.full_name ?? "?").charAt(0).toUpperCase()}
                           </div>
-                        ) : (
-                          <button onClick={() => setQuoting(c)} className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>Send quote</button>
-                        )
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: "#e8f0e4", color: "#2d5230" }}>
-                          {c.status === "quoted" ? `Quoted ₦${c.quote_amount?.toLocaleString("en-NG")}` : c.status}
-                        </span>
-                      )}
+                          <div className="flex-1 min-w-0">
+                            <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.85rem" }}>{s.profiles?.full_name ?? "Unknown"}</p>
+                            <p style={{ color: "#9ba89a", fontSize: "0.72rem" }} className="truncate">{s.profiles?.email ?? "No email"}</p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span style={{ padding: "2px 8px", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 700, background: s.manifest_status === "green" ? "#d4e8d5" : "#fde8e8", color: s.manifest_status === "green" ? "#1a2e1c" : "#c0392b" }}>
+                              {s.manifest_status === "green" ? "Active" : "Overdue"}
+                            </span>
+                            <span style={{ color: "#9ba89a" }}>›</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* ── Payments ── */}
+            {billingSection === "payments" && (
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
+                  <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.75rem" }}>Payments</h2>
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    {["all","success","pending","rejected"].map(f => (
+                      <button key={f} onClick={() => setPaymentFilter(f as any)}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                        style={{ background: paymentFilter === f ? "#0e1f0f" : "#f0ece4", color: paymentFilter === f ? "#fff" : "#5a6e5c", cursor: "pointer", textTransform: "capitalize" }}>
+                        {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                      </button>
+                    ))}
                   </div>
-                ))
-              )}
-            </div>
+                  <input placeholder="Search by name…" value={billingSearch} onChange={e => setBillingSearch(e.target.value)}
+                    style={{ width: "100%", background: "#f7f5f0", border: "1px solid rgba(26,46,28,0.1)", borderRadius: "10px", padding: "8px 12px", fontSize: "0.8rem", outline: "none", color: "#1a2e1c" }} />
+                </div>
+                {(() => {
+                  const filtered = payments.filter(p =>
+                    (paymentFilter === "all" || p.status === paymentFilter) &&
+                    (!billingSearch || (p.profiles?.full_name ?? "").toLowerCase().includes(billingSearch.toLowerCase()))
+                  );
+                  return filtered.length === 0 ? (
+                    <p className="px-5 py-8 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>No payments match your filter.</p>
+                  ) : (
+                    filtered.map((p, i) => (
+                      <div key={p.id} onClick={() => p.channel === "bank_transfer" && setViewReceipt(p)}
+                        className="flex items-center gap-4 px-5 py-4 transition-colors"
+                        style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none", cursor: p.channel === "bank_transfer" ? "pointer" : "default" }}
+                        onMouseEnter={e => { if (p.channel === "bank_transfer") (e.currentTarget as HTMLElement).style.background = "#fafaf8"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: p.channel === "korapay" ? "#e8f0e4" : "#f0ece4" }}>
+                          <span style={{ fontSize: "0.9rem" }}>{p.channel === "korapay" ? "💳" : "🏦"}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.85rem" }}>{p.profiles?.full_name ?? "Unknown"}</p>
+                          <p style={{ color: "#9ba89a", fontSize: "0.72rem" }}>{p.channel === "korapay" ? "Korapay" : "Bank transfer"} · {p.purpose.replace("_", " ")} · {new Date(p.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.85rem" }}>₦{Number(p.amount).toLocaleString("en-NG")}</p>
+                          <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "1px 7px", borderRadius: "9999px", background: p.status === "success" ? "#d4e8d5" : p.status === "pending" ? "#fff3cd" : "#fde8e8", color: p.status === "success" ? "#1a2e1c" : p.status === "pending" ? "#856404" : "#c0392b" }}>
+                            {p.status === "success" ? "CONFIRMED" : p.status === "pending" ? "REVIEW →" : "REJECTED"}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* ── Urgent Pickups ── */}
+            {billingSection === "urgent" && (
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
+                  <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.75rem" }}>⚡ Urgent Pickups</h2>
+                  <input placeholder="Search by name or address…" value={billingSearch} onChange={e => setBillingSearch(e.target.value)}
+                    style={{ width: "100%", background: "#f7f5f0", border: "1px solid rgba(26,46,28,0.1)", borderRadius: "10px", padding: "8px 12px", fontSize: "0.8rem", outline: "none", color: "#1a2e1c" }} />
+                </div>
+                {(() => {
+                  const filtered = urgentPickups.filter(p => !billingSearch || (p.profiles?.full_name ?? "").toLowerCase().includes(billingSearch.toLowerCase()) || (p.address ?? "").toLowerCase().includes(billingSearch.toLowerCase()));
+                  return filtered.length === 0 ? (
+                    <p className="px-5 py-8 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>No urgent pickups yet.</p>
+                  ) : (
+                    filtered.map((p, i) => (
+                      <div key={p.id} onClick={() => setViewPickup(p)}
+                        className="flex items-center gap-3 px-5 py-4 hover:bg-[#fafaf8] transition-colors"
+                        style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none", cursor: "pointer" }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#fde8e8" }}>
+                          <span style={{ fontWeight: 700, color: "#c0392b", fontFamily: "var(--font-display)", fontSize: "0.9rem" }}>{(p.profiles?.full_name ?? "?").charAt(0).toUpperCase()}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.85rem" }}>{p.profiles?.full_name ?? "Unknown"}</p>
+                          <p style={{ color: "#9ba89a", fontSize: "0.72rem" }}>{p.pickup_date} · {p.pickup_time}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span style={{ padding: "2px 8px", borderRadius: "9999px", fontSize: "0.65rem", fontWeight: 700,
+                            background: p.status === "completed" ? "#d4e8d5" : p.status === "in_progress" ? "#fff3cd" : "#e8f0e4",
+                            color: p.status === "completed" ? "#1a2e1c" : p.status === "in_progress" ? "#856404" : "#2d5230" }}>
+                            {p.status.replace("_", " ")}
+                          </span>
+                          <span style={{ color: "#9ba89a" }}>›</span>
+                        </div>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* ── Bulk Clean-outs ── */}
+            {billingSection === "cleanouts" && (
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
+                  <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.75rem" }}>📦 Bulk Clean-out Requests</h2>
+                  <input placeholder="Search by name or address…" value={billingSearch} onChange={e => setBillingSearch(e.target.value)}
+                    style={{ width: "100%", background: "#f7f5f0", border: "1px solid rgba(26,46,28,0.1)", borderRadius: "10px", padding: "8px 12px", fontSize: "0.8rem", outline: "none", color: "#1a2e1c" }} />
+                </div>
+                {(() => {
+                  const filtered = cleanouts.filter(c => !billingSearch || (c.profiles?.full_name ?? "").toLowerCase().includes(billingSearch.toLowerCase()) || (c.address ?? "").toLowerCase().includes(billingSearch.toLowerCase()));
+                  return filtered.length === 0 ? (
+                    <p className="px-5 py-8 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>No clean-out requests yet.</p>
+                  ) : (
+                    filtered.map((c, i) => (
+                      <div key={c.id} className="flex items-center gap-4 px-5 py-4" style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
+                        {c.photo_url
+                          ? <img src={c.photo_url} alt="junk" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                          : <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#f0ece4" }}>📦</div>}
+                        <div className="flex-1 min-w-0">
+                          <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.85rem" }}>{c.profiles?.full_name ?? "Unknown"}</p>
+                          <p style={{ color: "#9ba89a", fontSize: "0.72rem" }} className="truncate">{c.description} — {c.address}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          {c.status === "pending_quote" ? (
+                            quoting?.id === c.id ? (
+                              <div className="flex items-center gap-2">
+                                <input type="number" placeholder="₦ amount" value={quoteAmount} onChange={e => setQuoteAmount(e.target.value)}
+                                  className="w-24 px-2 py-1.5 rounded-lg text-xs" style={{ background: "#f0ece4", border: "none", outline: "none" }} />
+                                <button onClick={() => sendQuote(c)} className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>Send</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => setQuoting(c)} className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#0e1f0f", color: "#f7f5f0", cursor: "pointer" }}>Send quote</button>
+                            )
+                          ) : (
+                            <span style={{ padding: "2px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, background: "#e8f0e4", color: "#2d5230" }}>
+                              {c.status === "quoted" ? `Quoted ₦${c.quote_amount?.toLocaleString("en-NG")}` : c.status}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            )}
+
           </div>
         )}
 

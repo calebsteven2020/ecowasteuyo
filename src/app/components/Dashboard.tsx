@@ -96,7 +96,7 @@ export function Dashboard() {
           {/* Activity stats — right below greeting, part of the header */}
           <div className="grid grid-cols-3 mb-6" style={{ borderTop: "1px solid rgba(247,245,240,0.08)", paddingTop: "1.1rem" }}>
             {[
-              { label: "Upcoming", value: upcoming.length, color: "#4ade80" },
+              { label: "Payments", value: payments.filter(p => p.status === "success").length, color: "#4ade80" },
               { label: "Completed", value: totalCollections, color: "#85c48a" },
               { label: "Urgent jobs", value: urgentCount, color: "#fca5a5" },
             ].map((s, i) => (
@@ -249,38 +249,60 @@ export function Dashboard() {
           </div>
         )}
 
-        {/* Upcoming pickups */}
+        {/* Subscription schedule card — replaces the empty upcoming pickups box */}
         <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
-          <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid rgba(26,46,28,0.06)" }}>
-            <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.82rem" }}>Upcoming pickups</p>
-            {upcoming.length > 0 && <button onClick={() => navigate("/history")} style={{ color: "#008751", fontSize: "0.7rem", fontWeight: 600 }}>See all</button>}
+          <div className="px-4 py-3.5" style={{ borderBottom: "1px solid rgba(26,46,28,0.06)" }}>
+            <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.82rem" }}>Your pickup schedule</p>
           </div>
-          {upcoming.length === 0 ? (
+          {sub && sub.status === "active" ? (
+            <div className="px-4 py-4 flex flex-col gap-3">
+              {/* Weekly pickup days */}
+              <div className="flex gap-2">
+                {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(day => {
+                  const isPickupDay = sub.plan_type === "basic"
+                    ? day === "Sat"
+                    : day === "Wed" || day === "Fri";
+                  const todayName = new Date().toLocaleDateString("en-US", { weekday: "short" }).slice(0,3);
+                  const isToday = todayName === day;
+                  return (
+                    <div key={day} className="flex-1 flex flex-col items-center py-2 rounded-xl"
+                      style={{ background: isPickupDay ? "#0e1f0f" : isToday ? "#f0ece4" : "#f7f5f0" }}>
+                      <p style={{ fontSize: "0.6rem", fontWeight: 600, color: isPickupDay ? "rgba(247,245,240,0.5)" : "#9ba89a", letterSpacing: "0.04em" }}>{day.toUpperCase()}</p>
+                      {isPickupDay && <span style={{ fontSize: "0.7rem", marginTop: "2px" }}>🗑️</span>}
+                      {isToday && !isPickupDay && <span className="w-1 h-1 rounded-full mt-1" style={{ background: "#008751" }} />}
+                    </div>
+                  );
+                })}
+              </div>
+              <p style={{ color: "#5a6e5c", fontSize: "0.72rem", lineHeight: 1.5 }}>
+                {sub.plan_type === "basic"
+                  ? "Collection every Saturday · Place bins outside by 7 AM"
+                  : "Collection every Wednesday & Friday · Place bins outside by 7 AM"}
+              </p>
+              <div className="flex items-center justify-between pt-2" style={{ borderTop: "1px solid rgba(26,46,28,0.06)" }}>
+                <span style={{ color: "#9ba89a", fontSize: "0.7rem" }}>Next billing</span>
+                <span style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.78rem" }}>{sub.next_billing_date}</span>
+              </div>
+            </div>
+          ) : (
             <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-2.5" style={{ background: "#e8f0e4" }}>
                 <Leaf className="w-5 h-5" style={{ color: "#008751" }} />
               </div>
-              <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.82rem" }}>No upcoming pickups</p>
-              <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "0.25rem", lineHeight: 1.5 }}>
-                {sub ? "Your next scheduled pickup appears here." : "Subscribe to get regular weekly collections."}
+              <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.82rem" }}>
+                {sub && sub.status === "pending" ? "Awaiting payment confirmation" : "No active subscription"}
               </p>
+              <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "0.25rem", lineHeight: 1.5 }}>
+                {sub && sub.status === "pending"
+                  ? "Your schedule will appear here once your transfer is verified."
+                  : "Subscribe to see your weekly collection schedule here."}
+              </p>
+              {!sub && (
+                <button onClick={() => navigate("/subscriptions")} className="mt-3 px-4 py-2 rounded-full text-xs font-medium" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
+                  Subscribe now
+                </button>
+              )}
             </div>
-          ) : (
-            upcoming.slice(0, 4).map((pickup, i) => (
-              <div key={pickup.id} className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: i < Math.min(upcoming.length, 4) - 1 ? "1px solid rgba(26,46,28,0.05)" : "none" }}>
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: pickup.source === "urgent" ? "#fde8e8" : "#e8f0e4" }}>
-                  {pickup.source === "urgent" ? <Zap className="w-3.5 h-3.5" style={{ color: "#c0392b" }} /> : <Recycle className="w-3.5 h-3.5" style={{ color: "#008751" }} />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.78rem" }}>{pickup.waste_type}</p>
-                  <p style={{ color: "#9ba89a", fontSize: "0.66rem" }} className="truncate">{pickup.address}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p style={{ color: "#1a2e1c", fontSize: "0.72rem", fontWeight: 600 }}>{pickup.pickup_date}</p>
-                  <p style={{ color: "#9ba89a", fontSize: "0.6rem" }}>{pickup.pickup_time}</p>
-                </div>
-              </div>
-            ))
           )}
         </div>
       </div>

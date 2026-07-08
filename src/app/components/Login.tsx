@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Leaf, Eye, EyeOff, ArrowLeft, ArrowRight, KeyRound } from "lucide-react";
@@ -63,26 +63,38 @@ export function Login() {
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [confirmedEmail, setConfirmedEmail] = useState("");
+
+  // When the email confirmation link redirects back with ?confirmed=1,
+  // auto-switch to sign-in tab and show a success toast.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("confirmed") === "1") {
+      setIsSignup(false);
+      toast.success("Email confirmed! You can now sign in.", { duration: 5000 });
+      const clean = window.location.pathname;
+      window.history.replaceState({}, "", clean);
+    }
+  }, []);
+
+  // Validate email more strictly — must have real TLD (.com, .ng, etc.)
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email.trim());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isSignup) {
-        // Basic email format validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-          toast.error("Please enter a valid email address.");
+        if (!isValidEmail(formData.email)) {
+          toast.error("Please enter a valid email address (e.g. name@example.com).");
           return;
         }
-
-        // Password strength check
         if (formData.password.length < 6) {
           toast.error("Password must be at least 6 characters.");
           return;
         }
-
-        // Name validation
         if (formData.name.trim().length < 2) {
           toast.error("Please enter your full name.");
           return;
@@ -91,7 +103,10 @@ export function Login() {
         const { data, error } = await supabase.auth.signUp({
           email: formData.email.toLowerCase().trim(),
           password: formData.password,
-          options: { data: { full_name: formData.name.trim() } },
+          options: {
+            data: { full_name: formData.name.trim() },
+            emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
+          },
         });
 
         if (error) {
@@ -106,21 +121,30 @@ export function Login() {
           return;
         }
 
-        // Supabase silently returns empty identities when email already exists (confirm email OFF)
         if (data.user && data.user.identities && data.user.identities.length === 0) {
           toast.error("An account with this email already exists. Please sign in instead.");
           return;
         }
 
         if (data.user && !data.session) {
-          toast.success("Check your email to confirm your account before signing in.");
+          // Email confirmation is ON — show a dedicated waiting screen
+          setConfirmedEmail(formData.email.toLowerCase().trim());
+          setAwaitingConfirmation(true);
           return;
         }
 
-        toast.success("Account created! Welcome to EcoWaste Uyo 🌿");
+        toast.success("Account created! Welcome to EcoWaste 🌿");
         navigate("/dashboard");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        // Check URL for ?confirmed=1 from email link click
+        const url = new URL(window.location.href);
+        if (url.searchParams.get("confirmed") === "1") {
+          toast.success("Email confirmed! You can now sign in.");
+          url.searchParams.delete("confirmed");
+          window.history.replaceState({}, "", url.toString());
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email.toLowerCase().trim(),
           password: formData.password,
         });
@@ -131,19 +155,18 @@ export function Login() {
           } else if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many")) {
             toast.error("Too many failed attempts. Please wait a few minutes.");
           } else if (msg.toLowerCase().includes("email not confirmed")) {
-            toast.error("Please confirm your email address before signing in.");
+            toast.error("Please confirm your email first. Check your inbox for the confirmation link.");
           } else {
             toast.error(msg || "Sign in failed. Please try again.");
           }
           return;
         }
+
         toast.success("Welcome back!");
-        // Check if agent
-        const { data: profileData } = await supabase.from("profiles").select("is_agent, is_admin").eq("id", (await supabase.auth.getUser()).data.user?.id ?? "").single();
+        const userId = data.user?.id ?? "";
+        const { data: profileData } = await supabase.from("profiles").select("is_admin").eq("id", userId).single();
         if (profileData?.is_admin || formData.email.toLowerCase().trim() === "admin@admin.com") {
           navigate("/admin");
-        } else if (profileData?.is_agent) {
-          navigate("/agent");
         } else {
           navigate("/dashboard");
         }
@@ -168,6 +191,32 @@ export function Login() {
     setForgotSent(true);
   };
 
+  // Email confirmation waiting screen
+  if (awaitingConfirmation) return (
+    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+      <div className="w-full max-w-sm text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "#e8f0e4" }}>
+          <span style={{ fontSize: "2rem" }}>📬</span>
+        </div>
+        <h1 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.5rem", fontWeight: 800, marginBottom: "0.5rem" }}>Check your inbox</h1>
+        <p style={{ color: "#5a6e5c", fontSize: "0.875rem", lineHeight: 1.7, marginBottom: "0.5rem" }}>We sent a confirmation link to</p>
+        <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.95rem", marginBottom: "1.5rem", wordBreak: "break-all" }}>{confirmedEmail}</p>
+        <p style={{ color: "#5a6e5c", fontSize: "0.82rem", lineHeight: 1.7, marginBottom: "2rem" }}>
+          Click the link in that email to confirm your account. Once confirmed, come back here and sign in — your account will be ready.
+        </p>
+        <button onClick={() => { setAwaitingConfirmation(false); setIsSignup(false); }}
+          className="w-full py-3.5 rounded-xl text-sm font-bold mb-3" style={{ background: "#0e1f0f", color: "#fff", cursor: "pointer" }}>
+          Go to sign in
+        </button>
+        <button onClick={() => setAwaitingConfirmation(false)}
+          className="w-full py-3 rounded-xl text-sm" style={{ background: "#f0ece4", color: "#5a6e5c", cursor: "pointer" }}>
+          Back to sign up
+        </button>
+        <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "1.5rem" }}>Didn't get it? Check spam, or go back and try again.</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
       {/* Nigerian flag strip */}
@@ -188,18 +237,23 @@ export function Login() {
             <Leaf className="w-4 h-4 text-white" />
           </div>
           <span style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1.1rem" }}>
-            EcoWaste <span style={{ color: "#85c48a", fontWeight: 400, fontSize: "0.85rem" }}>Uyo</span>
+            EcoWaste <span style={{ color: "#85c48a", fontWeight: 400, fontSize: "0.85rem" }}>Nigeria</span>
           </span>
         </div>
         <div className="relative">
+          <div className="flex gap-2 mb-5">
+            <span className="px-3 py-1 rounded-full text-xs" style={{ background: "rgba(0,135,81,0.3)", border: "1px solid rgba(0,135,81,0.5)", color: "#85c48a" }}>
+              🇳🇬 Made in Nigeria
+            </span>
+          </div>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontSize: "clamp(1.5rem,2.5vw,2rem)", lineHeight: 1.25, fontStyle: "italic", fontWeight: 600 }}>
             "Cleanliness is next to godliness — and next to a cleaner Nigeria starts with you."
           </p>
           <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.82rem", marginTop: "1rem" }}>
-            — EcoWaste Uyo, est. 2026
+            — EcoWaste Nigeria, est. 2024
           </p>
           <div className="flex gap-8 mt-10">
-            {[{ v: "5000+", l: "Users served" }, { v: "850 t", l: "Waste collected" }, { v: "1", l: "Nigerian city" }].map(s => (
+            {[{ v: "38M+", l: "Users served" }, { v: "4.2M t", l: "Waste collected" }, { v: "8", l: "Nigerian cities" }].map(s => (
               <div key={s.l}>
                 <div style={{ fontFamily: "var(--font-display)", color: "#85c48a", fontWeight: 700, fontSize: "1.4rem" }}>{s.v}</div>
                 <div style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.72rem" }}>{s.l}</div>
@@ -215,7 +269,7 @@ export function Login() {
           <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "#1a2e1c" }}>
             <Leaf className="w-4 h-4 text-white" />
           </div>
-          <span style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "1.05rem" }}>EcoWaste Uyo</span>
+          <span style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "1.05rem" }}>EcoWaste Nigeria</span>
         </div>
 
         <div className="w-full max-w-sm">
@@ -303,7 +357,7 @@ export function Login() {
 
               <div className="mb-7">
                 <h1 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.8rem", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-                  {isSignup ? "Join EcoWaste Uyo." : "Welcome back."}
+                  {isSignup ? "Join EcoWaste Nigeria." : "Welcome back."}
                 </h1>
                 <p style={{ color: "#5a6e5c", fontSize: "0.85rem", marginTop: "0.4rem", lineHeight: 1.6 }}>
                   {isSignup ? "Sign up free. First pickup is on us." : "Sign in to manage your pickups and track your impact."}

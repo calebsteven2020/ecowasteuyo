@@ -288,27 +288,17 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
             <div className="flex items-center justify-between px-4 py-3 rounded-xl"
               style={{ background: "#e8f0e4", border: "1px solid rgba(0,135,81,0.15)" }}>
               <div>
-                <p style={{ color: "#5a6e5c", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em" }}>AMOUNT DUE ON PICKUP</p>
+                <p style={{ color: "#5a6e5c", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.06em" }}>AMOUNT PAID</p>
                 <p style={{ fontFamily: "var(--font-display)", color: "#008751", fontWeight: 800, fontSize: "1.3rem", marginTop: "0.1rem" }}>
                   {formatNaira(pickup.price)}
                 </p>
               </div>
               <span className="px-3 py-1.5 rounded-full text-xs font-semibold"
                 style={{ background: "#1a2e1c", color: "#85c48a" }}>
-                Cash on pickup 💵
+                Cash paid online 💵
               </span>
             </div>
           )}
-
-          {/* Directions link */}
-          <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickup.address + ", Nigeria")}`}
-            target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-90"
-            style={{ background: "#1a2e1c", color: "#f7f5f0", textDecoration: "none" }}>
-            📍 Get directions to this address
-            <ArrowUpRight className="w-4 h-4 ml-auto" />
-          </a>
-
           {/* Agent assignment */}
           <AgentAssign pickup={pickup} onAssigned={onAssigned} />
 

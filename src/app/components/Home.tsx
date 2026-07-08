@@ -21,20 +21,20 @@ const STATS = [
 
 const STEPS = [
   { n: "01", title: "Create account", body: "Sign up in under 60 seconds. No paperwork, no stress — simply provide your name, email, and service address.", icon: CheckCircle2 },
-  { n: "02", title: "Subscribe to a plan", body: "Pick Basic or Commercial. We auto-charge you monthly and show up on your fixed pickup days — no booking needed.", icon: Calendar },
-  { n: "03", title: "We collect & report", body: "Verified agents arrive, collect, and send you an impact report — CO₂ saved, trees protected.", icon: Recycle },
+  { n: "02", title: "Subscribe to a plan", body: "Pick Basic or Commercial. We charge you monthly and show up on your fixed pickup days — no booking needed.", icon: Calendar },
+  { n: "03", title: "We collect & report", body: "Verified agents arrive, collect, and send you an impact report.", icon: Recycle },
 ];
 
 const FEATURES = [
   { icon: Repeat, title: "Fixed Weekly Pickups", body: "No more booking every time. Subscribe once and we show up on your fixed pickup day, every week, automatically." },
-  { icon: CreditCard, title: "Auto-Billed Monthly", body: "Pay by card, bank, or USSD through Korapay — or transfer manually. We charge you once a month, no surprises." },
-  { icon: BarChart3, title: "Personal Green Dashboard", body: "Track your cumulative impact: tonnes recycled, trees saved, water protected. Share your milestone on WhatsApp." },
+  { icon: CreditCard, title: "Billed Monthly", body: "Pay by card, bank, or USSD through Korapay — or transfer manually. We charge you once a month, no surprises." },
+  { icon: BarChart3, title: "Personal Green Dashboard", body: "Track your cumulative impact, water protected. Share your milestone on WhatsApp." },
 ];
 
 const TESTIMONIALS = [
   { name: "Anamemem Ekwere", role: "Shelter Afrique Estate, Uyo", body: "Before EcoWaste, I was burning my rubbish or waiting for the PSP truck that never showed. Now I book, they come. E no hard.", rating: 5 },
   { name: "Kenneth Sideso", role: "Restaurant owner, Nwaniba Road", body: "I generate serious organic waste daily. EcoWaste handles everything — commercial volume, custom schedules, they no dey let me down.", rating: 5 },
-  { name: "Theodore Udosen", role: "Sustainability officer, Ikot Ekpene Rd", body: "My office adopted EcoWaste for e-waste. The impact dashboard is accurate and we use it for our CSR reports every quarter.", rating: 5 },
+  { name: "Theodore Udosen", role: "Ewet Housing Estate, Uyo", body: "Had difficulty in seeing a dumpsite around, now with Ecowaste, i don't need to worry about that, they worry for me.", rating: 5 },
 ];
 
 const CITIES = ["Uyo"];

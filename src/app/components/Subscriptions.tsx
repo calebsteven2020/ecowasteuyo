@@ -17,7 +17,7 @@ const PLANS = {
     label: "Basic Plan",
     sub: "Residential",
     icon: Home,
-    price: 8000, // ₦3,000 – ₦5,000 / month
+    price: 100, // ₦3,000 – ₦5,000 / month
     priceRange: "₦8,000",
     pickupsPerWeek: 1,
     perks: ["1 fixed pickup every week (4x a month)", "Automatic monthly billing", "WhatsApp/SMS pickup reminders"],

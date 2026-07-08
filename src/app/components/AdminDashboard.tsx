@@ -14,6 +14,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, PieChart, Pie, Ce
 interface Pickup {
   id: string; user_id: string; waste_type: string; address: string;
   pickup_date: string; pickup_time: string; status: string;
+  source?: string;
   estimated_weight?: number; actual_weight?: number;
   notes?: string; photo_url?: string | null; price?: number | null; agent_name?: string | null; created_at: string;
   profiles?: { full_name: string | null; phone: string | null; };

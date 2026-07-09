@@ -237,23 +237,18 @@ export function Login() {
             <Leaf className="w-4 h-4 text-white" />
           </div>
           <span style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1.1rem" }}>
-            EcoWaste <span style={{ color: "#85c48a", fontWeight: 400, fontSize: "0.85rem" }}>Nigeria</span>
+            EcoWaste <span style={{ color: "#85c48a", fontWeight: 400, fontSize: "0.85rem" }}>Uyo</span>
           </span>
         </div>
         <div className="relative">
-          <div className="flex gap-2 mb-5">
-            <span className="px-3 py-1 rounded-full text-xs" style={{ background: "rgba(0,135,81,0.3)", border: "1px solid rgba(0,135,81,0.5)", color: "#85c48a" }}>
-              🇳🇬 Made in Nigeria
-            </span>
-          </div>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontSize: "clamp(1.5rem,2.5vw,2rem)", lineHeight: 1.25, fontStyle: "italic", fontWeight: 600 }}>
             "Cleanliness is next to godliness — and next to a cleaner Nigeria starts with you."
           </p>
           <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.82rem", marginTop: "1rem" }}>
-            — EcoWaste Nigeria, est. 2024
+            — EcoWaste Uyo, est. 2026
           </p>
           <div className="flex gap-8 mt-10">
-            {[{ v: "38M+", l: "Users served" }, { v: "4.2M t", l: "Waste collected" }, { v: "8", l: "Nigerian cities" }].map(s => (
+            {[{ v: "5000+", l: "Users served" }, { v: "850 t", l: "Waste collected" }, { v: "`1", l: "Nigerian city" }].map(s => (
               <div key={s.l}>
                 <div style={{ fontFamily: "var(--font-display)", color: "#85c48a", fontWeight: 700, fontSize: "1.4rem" }}>{s.v}</div>
                 <div style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.72rem" }}>{s.l}</div>
@@ -269,7 +264,7 @@ export function Login() {
           <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "#1a2e1c" }}>
             <Leaf className="w-4 h-4 text-white" />
           </div>
-          <span style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "1.05rem" }}>EcoWaste Nigeria</span>
+          <span style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "1.05rem" }}>EcoWaste Uyo</span>
         </div>
 
         <div className="w-full max-w-sm">
@@ -357,7 +352,7 @@ export function Login() {
 
               <div className="mb-7">
                 <h1 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.8rem", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-                  {isSignup ? "Join EcoWaste Nigeria." : "Welcome back."}
+                  {isSignup ? "Join EcoWaste Uyo." : "Welcome back."}
                 </h1>
                 <p style={{ color: "#5a6e5c", fontSize: "0.85rem", marginTop: "0.4rem", lineHeight: 1.6 }}>
                   {isSignup ? "Sign up free. First pickup is on us." : "Sign in to manage your pickups and track your impact."}

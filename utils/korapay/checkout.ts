@@ -8,22 +8,25 @@ declare global {
   }
 }
 
-let scriptPromise: Promise<void> | null = null;
-
 function loadKorapayScript(): Promise<void> {
-  if (window.Korapay) return Promise.resolve();
-  if (scriptPromise) return scriptPromise;
+  return new Promise((resolve, reject) => {
+    // Remove any existing Korapay script to force a fresh load
+    const existing = document.querySelector('script[src*="korapay"]');
+    if (existing) existing.remove();
 
-  scriptPromise = new Promise((resolve, reject) => {
+    // Clear cached instance
+    if (window.Korapay) {
+      delete window.Korapay;
+    }
+
     const script = document.createElement("script");
-    script.src = "https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js";
+    // Add cache-busting timestamp to force fresh script load
+    script.src = `https://korablobstorage.blob.core.windows.net/modal-bucket/korapay-collections.min.js?v=${Date.now()}`;
     script.async = true;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Could not load Korapay checkout script."));
     document.body.appendChild(script);
   });
-
-  return scriptPromise;
 }
 
 interface KorapayChargeOptions {
@@ -47,7 +50,7 @@ export async function payWithKorapay(opts: KorapayChargeOptions) {
     amount: opts.amount,
     currency: "NGN",
     customer: { email: opts.email, name: opts.name },
-    narration: opts.narration ?? "EcoWaste payment",
+    narration: opts.narration ?? "EcoWaste Uyo payment",
     onSuccess: (data: any) => opts.onSuccess(data),
     onFailed: (data: any) => opts.onFailed?.(data),
     onClose: () => opts.onClose?.(),

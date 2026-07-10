@@ -177,7 +177,7 @@ export function AgentPortal() {
   const redCount = manifest.filter(m => m.manifest_status === "red").length;
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
         <p style={{ color: "#5a6e5c", fontSize: "0.8rem" }}>Loading your route…</p>
@@ -186,7 +186,7 @@ export function AgentPortal() {
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <style>{`
         @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.35} }

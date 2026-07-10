@@ -59,7 +59,7 @@ export function Dashboard() {
   const handleSignOut = async () => { await signOut(); navigate("/login"); };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f0ede8" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f0ede8" }}>
       <div className="w-7 h-7 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
@@ -67,7 +67,7 @@ export function Dashboard() {
   const HERO_IMG = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
 
   return (
-    <div className="min-h-screen" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
 
       {/* ── Header with hero image ─────────────────────── */}
       <div className="relative overflow-hidden" style={{ background: "#0e1f0f" }}>

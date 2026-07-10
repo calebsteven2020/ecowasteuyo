@@ -45,7 +45,7 @@ export function Contact() {
   const { user } = useAuth();
 
   return (
-    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }} className="min-h-screen">
+    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }} className="min-h-dvh">
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50"

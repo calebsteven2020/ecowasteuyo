@@ -206,7 +206,7 @@ export function BookPickup() {
   const blur  = (e: React.FocusEvent<any>) => (e.target.style.borderColor = "transparent");
 
   if (!profile?.phone) return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="fixed top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} /><div className="flex-1" style={{ background: "#ffffff" }} /><div className="flex-1" style={{ background: "#008751" }} />
       </div>
@@ -225,7 +225,7 @@ export function BookPickup() {
   );
 
   if (confirmed && confirmedDetails) return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.4s ease" }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.4s ease" }}>
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
       <div className="w-full max-w-sm">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "#c0392b" }}>
@@ -270,7 +270,7 @@ export function BookPickup() {
   );
 
   return (
-    <div className="min-h-screen" style={{background:"#f7f5f0",fontFamily:"var(--font-body)"}}>
+    <div className="min-h-dvh" style={{background:"#f7f5f0",fontFamily:"var(--font-body)"}}>
       <div className="max-w-2xl mx-auto px-6 py-10">
         <button type="button" onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 opacity-45 hover:opacity-75 transition-opacity" style={{color:"#1a2e1c",fontSize:"0.78rem"}}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard

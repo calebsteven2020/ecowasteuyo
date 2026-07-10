@@ -43,13 +43,13 @@ export function ResetPassword() {
   };
 
   if (!validSession) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       {/* Nigerian flag strip */}
       <div className="fixed top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} />

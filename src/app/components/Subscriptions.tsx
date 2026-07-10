@@ -344,13 +344,13 @@ export function Subscriptions() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 text-sm hover:opacity-70" style={{ color: "#5a6e5c" }}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard

@@ -193,7 +193,7 @@ export function Login() {
 
   // Email confirmation waiting screen
   if (awaitingConfirmation) return (
-    <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh flex items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="w-full max-w-sm text-center">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "#e8f0e4" }}>
           <span style={{ fontSize: "2rem" }}>📬</span>
@@ -218,7 +218,7 @@ export function Login() {
   );
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
       {/* Nigerian flag strip */}
       <div className="absolute top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} />

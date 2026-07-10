@@ -96,7 +96,7 @@ function PublicHome() {
       </div>
 
       {/* HERO */}
-      <section className="relative min-h-screen flex items-end pb-20 overflow-hidden">
+      <section className="relative min-h-dvh flex items-end pb-20 overflow-hidden">
         <div className="absolute inset-0">
           <img src={HERO_IMG} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, rgba(10,22,11,0.75) 0%, rgba(10,22,11,0.5) 40%, rgba(10,22,11,0.88) 100%)" }} />
@@ -439,7 +439,7 @@ function LoggedInHome() {
   ];
 
   return (
-    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0", minHeight: "100dvh" }}>
       <div className="h-1 flex">
         <div className="flex-1" style={{ background: "#008751" }} />
         <div className="flex-1" style={{ background: "#fff" }} />
@@ -531,12 +531,12 @@ export function Home() {
   }, [user, loading, navigate]);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
   if (user?.email === "admin@admin.com") return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );

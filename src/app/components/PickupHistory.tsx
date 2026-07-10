@@ -39,13 +39,13 @@ export function PickupHistory() {
   const totalPaid = payments.filter(p => p.status === "success").reduce((s, p) => s + Number(p.amount), 0);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f0ede8" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f0ede8" }}>
       <div className="w-7 h-7 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
       {/* Header */}
       <div style={{ background: "#0e1f0f" }}>
         <div className="max-w-2xl mx-auto px-5 pt-7 pb-5">

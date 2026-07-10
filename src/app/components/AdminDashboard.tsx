@@ -1104,7 +1104,7 @@ export function AdminDashboard() {
   const commercialCount = activeSubs.filter(s => s.plan_type === "commercial").length;
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
         <p style={{ color: "rgba(133,196,138,0.6)", fontSize: "0.82rem" }}>Loading admin dashboard...</p>
@@ -1113,7 +1113,7 @@ export function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.3s ease" }}>
+    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.3s ease" }}>
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* Nigerian flag strip */}

@@ -19,7 +19,7 @@ const ADMIN_EMAIL = "admin@admin.com";
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#3a6b3f] border-t-transparent animate-spin" />
     </div>
   );
@@ -29,7 +29,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, profile } = useAuth();
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#3a6b3f] border-t-transparent animate-spin" />
     </div>
   );
@@ -42,7 +42,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 function UserRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, profile } = useAuth();
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#3a6b3f] border-t-transparent animate-spin" />
     </div>
   );

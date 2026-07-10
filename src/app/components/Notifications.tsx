@@ -55,7 +55,7 @@ export function Notifications() {
   const unread = notifs.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="max-w-2xl mx-auto px-6 py-10">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 opacity-45 hover:opacity-75 transition-opacity" style={{ color: "#1a2e1c", fontSize: "0.78rem" }}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard

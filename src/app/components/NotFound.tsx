@@ -4,7 +4,7 @@ import { Leaf, ArrowLeft } from "lucide-react";
 export function NotFound() {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style={{ background: "#e8f0e4" }}>
         <Leaf className="w-7 h-7" style={{ color: "#008751" }} />
       </div>

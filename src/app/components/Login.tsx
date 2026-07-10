@@ -218,7 +218,7 @@ export function Login() {
   );
 
   return (
-    <div className="min-h-dvh flex" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
+    <div className="min-h-dvh flex relative" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
       {/* Nigerian flag strip */}
       <div className="absolute top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} />

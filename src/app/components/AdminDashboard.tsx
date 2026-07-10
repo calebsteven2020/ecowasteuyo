@@ -147,10 +147,10 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(10,22,11,0.6)", backdropFilter: "blur(6px)" }}
+      style={{ background: "rgba(10,22,11,0.72)" }}
       onClick={onClose}>
       <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl overflow-hidden"
-        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.3)", maxHeight: "92vh", overflowY: "auto" }}
+        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.3)", maxHeight: "92dvh", overflowY: "auto" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -368,7 +368,7 @@ function ConfirmModal({ pickup, onClose, onConfirm, loading }: {
   const [weight, setWeight] = useState(pickup.estimated_weight?.toString() ?? "");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: "rgba(10,22,11,0.6)", backdropFilter: "blur(6px)" }}>
+      style={{ background: "rgba(10,22,11,0.72)" }}>
       <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 25px 60px rgba(10,22,11,0.3)" }}>
         <div className="px-6 py-5" style={{ background: "#1a2e1c" }}>
           <div className="flex items-center justify-between">
@@ -655,7 +655,7 @@ function ReceiptViewerModal({ payment, onClose, onApprove, onReject }: { payment
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <div>
@@ -737,9 +737,9 @@ function SubscriptionDetailModal({ sub, onClose }: { sub: any; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
-      style={{ background: "rgba(10,22,11,0.6)", backdropFilter: "blur(6px)" }}
+      style={{ background: "rgba(10,22,11,0.72)" }}
       onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", maxHeight: "90vh", overflowY: "auto" }}
+      <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", maxHeight: "90dvh", overflowY: "auto" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -1677,13 +1677,13 @@ export function AdminDashboard() {
       {/* Photo lightbox */}
       {photoPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(8px)" }}
+          style={{ background: "rgba(0,0,0,0.95)" }}
           onClick={() => setPhotoPreview(null)}>
           <div className="relative max-w-lg w-full" onClick={e => e.stopPropagation()}>
             <button onClick={() => setPhotoPreview(null)} className="absolute -top-10 right-0 p-2 rounded-full hover:bg-white/10 transition-colors">
               <X className="w-5 h-5 text-white" />
             </button>
-            <img src={photoPreview} alt="Waste pickup" className="w-full rounded-2xl object-contain max-h-[80vh]" />
+            <img src={photoPreview} alt="Waste pickup" className="w-full rounded-2xl object-contain max-h-[80dvh]" />
           </div>
         </div>
       )}

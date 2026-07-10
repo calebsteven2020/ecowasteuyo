@@ -589,7 +589,7 @@ function ChangePlanModal({ sub, onClose, onUpgradeConfirmed }: { sub: Subscripti
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Change Plan</p>
@@ -701,7 +701,7 @@ function ReceiptUploadModal({ sub, onClose, onSubmitted }: { sub: Subscription; 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Upload Transfer Receipt</p>
@@ -812,7 +812,7 @@ function BulkCleanoutModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Bulk Clean-out</p>

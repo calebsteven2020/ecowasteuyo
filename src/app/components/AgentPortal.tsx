@@ -468,7 +468,7 @@ export function AgentPortal() {
       {/* Complete pickup modal */}
       {selectedPickup && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
-          style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)" }}>
+          style={{ background: "rgba(10,22,11,0.76)" }}>
           <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 24px 60px rgba(10,22,11,0.3)" }}>
             <div className="px-6 py-5" style={{ background: "#1a2e1c" }}>
               <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.65rem", letterSpacing: "0.08em" }}>CONFIRM COLLECTION</p>

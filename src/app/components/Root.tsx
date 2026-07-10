@@ -36,7 +36,7 @@ function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40" style={{ background: "rgba(247,245,240,0.94)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(26,46,28,0.1)", fontFamily: "var(--font-body)" }}>
+    <header className="sticky top-0 z-40" style={{ background: "rgba(247,245,240,0.98)", borderBottom: "1px solid rgba(26,46,28,0.1)", fontFamily: "var(--font-body)" }}>
       {/* Nigerian flag strip */}
       <div className="h-0.5 flex">
         <div className="flex-1" style={{ background: "#008751" }} />

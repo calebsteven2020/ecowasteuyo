@@ -68,11 +68,11 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4"
-      style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)", animation: "fadeIn 0.3s ease" }}>
-      <style>{`@keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }`}</style>
+      style={{ background: "rgba(10,22,11,0.75)", animation: "fadeInOverlay 0.2s ease" }}>
+      <style>{`@keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } } @keyframes fadeInCard { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }`}</style>
 
       <div className="w-full max-w-sm rounded-2xl overflow-hidden"
-        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.35)" }}>
+        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.35)", animation: "fadeInCard 0.25s ease" }}>
 
         {/* Progress bar */}
         <div className="h-1 flex" style={{ background: "#e8f0e4" }}>

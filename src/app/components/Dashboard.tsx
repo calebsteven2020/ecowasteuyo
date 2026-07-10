@@ -70,8 +70,29 @@ export function Dashboard() {
     <div className="min-h-dvh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
 
       {/* ── Header with hero image ─────────────────────── */}
-      <div className="relative overflow-hidden" style={{ background: "#0e1f0f" }}>
-        <img src={HERO_IMG} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none select-none" aria-hidden />
+      {/*
+        NOTE on the image below: it is rendered at FULL opacity with a solid
+        dark overlay on top of it, rather than as a single low-opacity image.
+        Putting a large image on its own low-opacity compositor layer is what
+        was causing the torn/striped rendering and ghosted/duplicated cards
+        on Chrome for Android — Chrome promotes opacity+object-cover images to
+        their own GPU layer, and that layer's tiles were getting corrupted on
+        scroll. A full-opacity image + separate flat overlay avoids that
+        layer entirely. `contain: "paint"` on this wrapper (instead of relying
+        on overflow-hidden's implicit layer promotion) keeps the clipping
+        cheap and stable instead of spinning up another compositor layer.
+      */}
+      <div className="relative" style={{ background: "#0e1f0f", contain: "paint" }}>
+        <img
+          src={HERO_IMG}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          aria-hidden
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "#0e1f0f", opacity: 0.9 }} />
         <div className="relative z-10 max-w-4xl mx-auto px-5 pt-7 pb-0">
 
           {/* Brand row */}
@@ -204,7 +225,7 @@ export function Dashboard() {
         </div>
 
         {/* Secondary links */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)", contain: "paint" }}>
           {[
             { label: "History", sub: "Payments, pickups & activity", icon: Clock, path: "/history" },
             { label: "Bulk Clean-out", sub: "Moving? One-time truck dispatch", icon: Leaf, path: "/subscriptions" },
@@ -224,7 +245,7 @@ export function Dashboard() {
 
         {/* Recent payments */}
         {payments.length > 0 && (
-          <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
+          <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)", contain: "paint" }}>
             <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: "1px solid rgba(26,46,28,0.06)" }}>
               <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.82rem" }}>Recent payments</p>
               <button onClick={() => navigate("/history")} style={{ color: "#008751", fontSize: "0.7rem", fontWeight: 600 }}>See all</button>
@@ -250,7 +271,7 @@ export function Dashboard() {
         )}
 
         {/* Subscription schedule card — replaces the empty upcoming pickups box */}
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)", contain: "paint" }}>
           <div className="px-4 py-3.5" style={{ borderBottom: "1px solid rgba(26,46,28,0.06)" }}>
             <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.82rem" }}>Your pickup schedule</p>
           </div>

@@ -79,7 +79,7 @@ function PublicHome() {
               Sign in
             </button>
             <button onClick={() => navigate("/login")}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90 whitespace-nowrap"
+              className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-90 whitespace-nowrap"
               style={{ background: "#008751", color: "#fff" }}>
               <span className="hidden sm:inline">Get started free</span>
               <span className="sm:hidden">Get started</span>
@@ -96,7 +96,7 @@ function PublicHome() {
       </div>
 
       {/* HERO */}
-      <section className="relative min-h-dvh flex items-end pb-20 overflow-hidden">
+      <section className="relative min-h-svh flex items-end pb-20 overflow-hidden">
         <div className="absolute inset-0">
           <img src={HERO_IMG} alt="" className="w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, rgba(10,22,11,0.75) 0%, rgba(10,22,11,0.5) 40%, rgba(10,22,11,0.88) 100%)" }} />
@@ -117,13 +117,13 @@ function PublicHome() {
 
             <div className="flex flex-col sm:flex-row gap-3 mt-8">
               <button onClick={() => navigate("/login")}
-                className="group flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold transition-all hover:opacity-95 text-sm"
+                className="group flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold transition-colors hover:opacity-95 text-sm"
                 style={{ background: "#008751", color: "#fff" }}>
                 See subscription plans
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
               <button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
-                className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-medium text-sm transition-all hover:bg-white/10"
+                className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-medium text-sm transition-colors hover:bg-white/10"
                 style={{ background: "rgba(255,255,255,0.08)", color: "#f7f5f0", border: "1px solid rgba(255,255,255,0.15)" }}>
                 See how it works
               </button>
@@ -165,7 +165,7 @@ function PublicHome() {
               </h2>
             </div>
             <button onClick={() => navigate("/login")}
-              className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+              className="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90"
               style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
               Get started <ArrowRight className="w-4 h-4" />
             </button>
@@ -207,7 +207,7 @@ function PublicHome() {
               The Uyo Capital City Development Area generates an estimated 690,000 tonnes of municipal solid waste annually, with studies showing that collection systems still struggle to keep pace with rapid urban growth. Much of the uncollected waste finds its way into drains, rivers, and open dumps, worsening flooding and environmental hazards across our communities.
             </p>
             <button onClick={() => navigate("/login")}
-              className="mt-8 self-start flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
+              className="mt-8 self-start flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-colors hover:opacity-90"
               style={{ background: "#008751", color: "#fff" }}>
               Be part of the solution <ChevronRight className="w-4 h-4" />
             </button>
@@ -249,7 +249,7 @@ function PublicHome() {
                 ))}
               </div>
               <button onClick={() => navigate("/login")}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors hover:opacity-90"
                 style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
                 Subscribe to Basic <ArrowRight className="w-4 h-4" />
               </button>
@@ -278,7 +278,7 @@ function PublicHome() {
                 ))}
               </div>
               <button onClick={() => navigate("/login")}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-colors hover:opacity-90"
                 style={{ background: "#008751", color: "#fff" }}>
                 Subscribe to Commercial <ArrowRight className="w-4 h-4" />
               </button>
@@ -302,7 +302,7 @@ function PublicHome() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {FEATURES.map((f, i) => (
-              <div key={f.title} className="rounded-2xl p-7 group hover:-translate-y-1 transition-all duration-200"
+              <div key={f.title} className="rounded-2xl p-7 group hover:-translate-y-1 transition-colors duration-200"
                 style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-colors"
                   style={{ background: "#e8f0e4" }}>
@@ -356,7 +356,7 @@ function PublicHome() {
               </h2>
             </div>
             <button onClick={() => navigate("/login")}
-              className="self-start flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+              className="self-start flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90"
               style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
               Check your area <ArrowUpRight className="w-4 h-4" />
             </button>
@@ -388,7 +388,7 @@ function PublicHome() {
               Plans start at ₦8,000/month. Join thousands of Nigerians building a cleaner nation, one weekly pickup at a time.
             </p>
             <button onClick={() => navigate("/login")}
-              className="mt-8 inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
+              className="mt-8 inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm transition-colors hover:opacity-90"
               style={{ background: "#008751", color: "#fff" }}>
               Create free account <ArrowRight className="w-4 h-4" />
             </button>
@@ -439,7 +439,7 @@ function LoggedInHome() {
   ];
 
   return (
-    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0", minHeight: "100dvh" }}>
+    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0", minHeight: "100svh" }}>
       <div className="h-1 flex">
         <div className="flex-1" style={{ background: "#008751" }} />
         <div className="flex-1" style={{ background: "#fff" }} />
@@ -485,7 +485,7 @@ function LoggedInHome() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {quickLinks.map(link => (
             <button key={link.label} onClick={() => navigate(link.href)}
-              className="flex items-center gap-4 p-5 rounded-2xl text-left transition-all hover:-translate-y-0.5 active:scale-[0.98]"
+              className="flex items-center gap-4 p-5 rounded-2xl text-left transition-colors"
               style={{ background: link.dark ? "#1a2e1c" : "#fff", border: link.dark ? "none" : "1px solid rgba(26,46,28,0.08)" }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: link.dark ? "rgba(255,255,255,0.1)" : "#e8f0e4" }}>
@@ -510,7 +510,7 @@ function LoggedInHome() {
             <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.78rem", marginTop: "0.2rem" }}>See your CO₂ saved, trees protected, and water conserved across all pickups.</p>
           </div>
           <button onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0 hover:opacity-90 transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0 hover:opacity-90 transition-colors"
             style={{ background: "#008751", color: "#fff" }}>
             View <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -531,12 +531,12 @@ export function Home() {
   }, [user, loading, navigate]);
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
   if (user?.email === "admin@admin.com") return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );

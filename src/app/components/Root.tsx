@@ -3,12 +3,19 @@ import { Leaf, LayoutDashboard, Calendar, Clock, LogOut, Bell, User } from "luci
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase/client";
+import { useLiteMode } from "../hooks/useLiteMode";
 
 export function Root() {
   const location = useLocation();
   const hideHeader = location.pathname === "/login" || location.pathname === "/" || location.pathname.startsWith("/admin");
+  // On devices where we detect a GPU rasterization problem (see
+  // utils/perf/liteMode.ts), `perf-lite` is added to the root element.
+  // Individual pages/components can read useLiteMode() themselves for
+  // JS-level branching (e.g. skipping a heavy background image), and
+  // index.css has some blanket CSS-level fallbacks keyed off this class.
+  const liteMode = useLiteMode();
   return (
-    <div className="min-h-dvh bg-background">
+    <div className={`min-h-svh bg-background${liteMode ? " perf-lite" : ""}`}>
       {!hideHeader && <Header />}
       <main><Outlet /></main>
     </div>
@@ -36,7 +43,13 @@ function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40" style={{ background: "rgba(247,245,240,0.98)", borderBottom: "1px solid rgba(26,46,28,0.1)", fontFamily: "var(--font-body)" }}>
+    // NOTE: `backdrop-filter: blur()` combined with `position: sticky` is a
+    // known Chrome-for-Android bug — the browser has to re-blur whatever
+    // scrolls underneath the header on every frame, and on many Android
+    // GPUs that repaint falls behind/corrupts, which is what produced the
+    // torn image and the ghosted/duplicated card text you saw. Swapping to
+    // a fully opaque background removes the blur recompute entirely.
+    <header className="sticky top-0 z-40" style={{ background: "#f7f5f0", borderBottom: "1px solid rgba(26,46,28,0.1)", fontFamily: "var(--font-body)", transform: "translateZ(0)" }}>
       {/* Nigerian flag strip */}
       <div className="h-0.5 flex">
         <div className="flex-1" style={{ background: "#008751" }} />
@@ -57,7 +70,7 @@ function Header() {
           {navLinks.map(({ href, label, icon: Icon }) => {
             const active = location.pathname === href;
             return (
-              <a key={href} href={href} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm transition-all"
+              <a key={href} href={href} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm transition-colors"
                 style={{ color: active ? "#1a2e1c" : "#5a6e5c", background: active ? "#e8f0e4" : "transparent", fontWeight: active ? 500 : 400 }}>
                 <Icon className="w-3.5 h-3.5" />{label}
               </a>
@@ -77,7 +90,7 @@ function Header() {
             <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.82rem" }}>{name}</p>
             <p style={{ color: "#5a6e5c", fontSize: "0.72rem" }}>{user?.email}</p>
           </div>
-          <button onClick={signOut} className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm ml-1 transition-all hover:opacity-80" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
+          <button onClick={signOut} className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm ml-1 transition-colors hover:opacity-80" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
             <LogOut className="w-3.5 h-3.5" />
             <span className="hidden sm:inline text-xs">Sign out</span>
           </button>

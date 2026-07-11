@@ -57,7 +57,7 @@ export function Profile() {
   const blur  = (e: React.FocusEvent<any>) => (e.target.style.borderColor = "transparent");
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="max-w-lg mx-auto px-6 py-10">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 opacity-45 hover:opacity-75 transition-opacity" style={{ color: "#1a2e1c", fontSize: "0.78rem" }}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
@@ -73,7 +73,7 @@ export function Profile() {
                 ? <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                 : <User className="w-10 h-10" style={{ color: "#008751" }} />}
             </div>
-            <button onClick={() => fileRef.current?.click()} className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:opacity-80" style={{ background: "#1a2e1c" }}>
+            <button onClick={() => fileRef.current?.click()} className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:opacity-80" style={{ background: "#1a2e1c" }}>
               <Upload className="w-3.5 h-3.5 text-white" />
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
@@ -119,10 +119,10 @@ export function Profile() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <button onClick={handleSave} disabled={saving} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-60" style={{ background: "#1a2e1c", color: "#f7f5f0", fontSize: "0.875rem" }}>
+          <button onClick={handleSave} disabled={saving} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-colors hover:opacity-90 disabled:opacity-60" style={{ background: "#1a2e1c", color: "#f7f5f0", fontSize: "0.875rem" }}>
             {saving ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <><Save className="w-4 h-4" /> Save changes</>}
           </button>
-          <button onClick={signOut} className="w-full py-3.5 rounded-xl font-medium transition-all hover:opacity-70" style={{ background: "#ede9e2", color: "#c0392b", fontSize: "0.875rem" }}>
+          <button onClick={signOut} className="w-full py-3.5 rounded-xl font-medium transition-colors hover:opacity-70" style={{ background: "#ede9e2", color: "#c0392b", fontSize: "0.875rem" }}>
             Sign out
           </button>
         </div>

@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { ArrowLeft, Recycle, Zap, CreditCard, Landmark, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
 import { useAuth } from "../context/AuthContext";
+import { payWithKorapay, newPaymentReference } from "../../../utils/korapay/checkout";
+import { isProfileComplete, PROFILE_INCOMPLETE_MESSAGE } from "../../../utils/profile/isProfileComplete";
 
 const formatNaira = (n: number) => "₦" + n.toLocaleString("en-NG");
 
@@ -10,13 +13,14 @@ type TabKey = "overview" | "payments" | "pickups" | "cleanouts";
 
 export function PickupHistory() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [tab, setTab] = useState<TabKey>("overview");
   const [sub, setSub] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [pickups, setPickups] = useState<any[]>([]);
   const [cleanouts, setCleanouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payingCleanoutId, setPayingCleanoutId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -38,14 +42,81 @@ export function PickupHistory() {
   const urgentPickups = pickups.filter(p => p.source === "urgent");
   const totalPaid = payments.filter(p => p.status === "success").reduce((s, p) => s + Number(p.amount), 0);
 
+  const handlePayCleanout = async (c: any) => {
+    if (!user) return;
+    if (!isProfileComplete(profile)) {
+      toast.error(PROFILE_INCOMPLETE_MESSAGE);
+      navigate("/profile");
+      return;
+    }
+    if (!c.quote_amount) return;
+    setPayingCleanoutId(c.id);
+    const reference = newPaymentReference("BLK");
+    let handled = false;
+
+    try {
+      await payWithKorapay({
+        amount: c.quote_amount,
+        email: user.email!,
+        name: profile?.full_name ?? undefined,
+        reference,
+        narration: "EcoWaste Bulk Clean-out payment",
+        onSuccess: async (data) => {
+          if (handled) return;
+          handled = true;
+
+          const { error: updateError } = await supabase
+            .from("bulk_cleanouts")
+            .update({ status: "paid" })
+            .eq("id", c.id);
+          if (updateError) {
+            console.error("[cleanout payment] status update failed:", updateError);
+            toast.error("Payment succeeded but we couldn't update the request. Reference: " + reference);
+            setPayingCleanoutId(null);
+            return;
+          }
+
+          const { error: paymentError } = await supabase.from("payments").insert({
+            user_id: user.id,
+            purpose: "bulk_cleanout",
+            bulk_cleanout_id: c.id,
+            amount: c.quote_amount,
+            channel: "korapay",
+            status: "success",
+            korapay_reference: data?.reference ?? reference,
+          });
+          if (paymentError && !paymentError.message?.toLowerCase().includes("duplicate")) {
+            console.error("[cleanout payment] payment record failed:", paymentError);
+          }
+
+          await supabase.from("notifications").insert({
+            user_id: user.id,
+            title: "Clean-out paid ✅",
+            message: `Your bulk clean-out payment of ${formatNaira(c.quote_amount)} was received. The truck will be dispatched to ${c.address}.`,
+            type: "success",
+          });
+
+          setCleanouts(prev => prev.map(item => item.id === c.id ? { ...item, status: "paid" } : item));
+          toast.success("Payment received — truck will be dispatched.");
+          setPayingCleanoutId(null);
+        },
+        onFailed: () => { if (!handled) { handled = true; toast.error("Payment failed. Please try again."); setPayingCleanoutId(null); } },
+        onClose: () => { if (!handled) setPayingCleanoutId(null); },
+      });
+    } catch (err) {
+      toast.error("Couldn't open Korapay checkout. Please try again.");
+      setPayingCleanoutId(null);
+    }
+  };
+
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f0ede8" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f0ede8" }}>
       <div className="w-7 h-7 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
       {/* Header */}
       <div style={{ background: "#0e1f0f" }}>
         <div className="max-w-2xl mx-auto px-5 pt-7 pb-5">
@@ -67,7 +138,7 @@ export function PickupHistory() {
             { key: "cleanouts", label: `Clean-outs${cleanouts.length > 0 ? ` (${cleanouts.length})` : ""}${cleanouts.some(c => c.status === "quoted") ? " 💰" : ""}` },
           ] as { key: TabKey; label: string }[]).map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className="flex-shrink-0 py-2.5 px-4 rounded-xl text-xs font-semibold transition-all"
+              className="flex-shrink-0 py-2.5 px-4 rounded-xl text-xs font-semibold transition-colors"
               style={{ background: tab === t.key ? "#0e1f0f" : "#fff", color: tab === t.key ? "#f7f5f0" : "#5a6e5c", border: "1px solid rgba(26,46,28,0.08)", cursor: "pointer" }}>
               {t.label}
             </button>
@@ -286,7 +357,19 @@ export function PickupHistory() {
                             <p style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 800, fontSize: "1.3rem", marginTop: "0.1rem" }}>
                               {formatNaira(c.quote_amount)}
                             </p>
-                            <p style={{ color: "#856404", fontSize: "0.7rem", marginTop: "0.2rem" }}>Pay before the truck is dispatched to your address.</p>
+                            <button
+                              onClick={() => handlePayCleanout(c)}
+                              disabled={payingCleanoutId === c.id}
+                              className="w-full mt-2.5 py-2.5 rounded-lg text-xs font-semibold transition-colors hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+                              style={{ background: "#1a2e1c", color: "#f7f5f0" }}
+                            >
+                              {payingCleanoutId === c.id ? (
+                                <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                              ) : (
+                                <>Pay {formatNaira(c.quote_amount)} now</>
+                              )}
+                            </button>
+                            <p style={{ color: "#856404", fontSize: "0.68rem", marginTop: "0.45rem" }}>Truck is dispatched right after payment is confirmed.</p>
                           </div>
                         )}
                         {c.photo_url && (

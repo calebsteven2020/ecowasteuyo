@@ -11,7 +11,7 @@ export function SkeletonBox({ className = "", style = {} }: { className?: string
 
 export function DashboardSkeleton() {
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <style>{`@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>
       <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Header */}
@@ -86,7 +86,7 @@ export function DashboardSkeleton() {
 
 export function HistorySkeleton() {
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0" }}>
       <style>{`@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }`}</style>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <SkeletonBox style={{ width: 120, height: 14, borderRadius: 8, marginBottom: 24 }} />

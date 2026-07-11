@@ -193,7 +193,7 @@ export function Login() {
 
   // Email confirmation waiting screen
   if (awaitingConfirmation) return (
-    <div className="min-h-dvh flex items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh flex items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="w-full max-w-sm text-center">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "#e8f0e4" }}>
           <span style={{ fontSize: "2rem" }}>📬</span>
@@ -218,7 +218,7 @@ export function Login() {
   );
 
   return (
-    <div className="min-h-dvh flex relative" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
+    <div className="min-h-svh flex" style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }}>
       {/* Nigerian flag strip */}
       <div className="absolute top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} />
@@ -323,7 +323,7 @@ export function Login() {
                     <button
                       onClick={handleForgotPassword}
                       disabled={loading}
-                      className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                      className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-colors hover:opacity-90 disabled:opacity-60"
                       style={{ background: "#1a2e1c", color: "#f7f5f0", fontSize: "0.9rem" }}>
                       {loading
                         ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -342,7 +342,7 @@ export function Login() {
                   const active = isSignup === (i === 1);
                   return (
                     <button key={tab} type="button" onClick={() => setIsSignup(i === 1)}
-                      className="flex-1 py-2.5 rounded-lg text-sm transition-all"
+                      className="flex-1 py-2.5 rounded-lg text-sm transition-colors"
                       style={{ background: active ? "#fff" : "transparent", color: active ? "#1a2e1c" : "#5a6e5c", fontWeight: active ? 600 : 400, boxShadow: active ? "0 1px 4px rgba(26,46,28,0.1)" : "none" }}>
                       {tab}
                     </button>
@@ -371,7 +371,7 @@ export function Login() {
                   showPassword={showPassword} setShowPassword={setShowPassword} />
 
                 <button type="submit" disabled={loading}
-                  className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                  className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-colors hover:opacity-90 disabled:opacity-60"
                   style={{ background: "#1a2e1c", color: "#f7f5f0", fontSize: "0.9rem" }}>
                   {loading
                     ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />

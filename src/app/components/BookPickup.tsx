@@ -6,6 +6,7 @@ import { CalendarIcon, ArrowLeft, Leaf, ChevronLeft, ChevronRight, Upload, X, Ch
 import { supabase } from "../../../utils/supabase/client";
 import { useAuth } from "../context/AuthContext";
 import { payWithKorapay, newPaymentReference } from "../../../utils/korapay/checkout";
+import { isProfileComplete, PROFILE_INCOMPLETE_MESSAGE } from "../../../utils/profile/isProfileComplete";
 
 const URGENT_PRICE = 8000; // Fixed flat price for all urgent pickups
 
@@ -113,6 +114,11 @@ export function BookPickup() {
     if (!date) { toast.error("Please select a pickup date"); return; }
     if (!form.time) { toast.error("Please select a time slot"); return; }
     if (!user) return;
+    if (!isProfileComplete(profile)) {
+      toast.error(PROFILE_INCOMPLETE_MESSAGE);
+      navigate("/profile");
+      return;
+    }
     setSubmitting(true);
 
     const fullAddress = `${form.address}${form.lga ? ", " + form.lga : ""}`;
@@ -206,7 +212,7 @@ export function BookPickup() {
   const blur  = (e: React.FocusEvent<any>) => (e.target.style.borderColor = "transparent");
 
   if (!profile?.phone) return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="fixed top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} /><div className="flex-1" style={{ background: "#ffffff" }} /><div className="flex-1" style={{ background: "#008751" }} />
       </div>
@@ -225,7 +231,7 @@ export function BookPickup() {
   );
 
   if (confirmed && confirmedDetails) return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.4s ease" }}>
+    <div className="min-h-svh flex flex-col items-center justify-center px-6 py-16" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.4s ease" }}>
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }`}</style>
       <div className="w-full max-w-sm">
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "#c0392b" }}>
@@ -270,7 +276,7 @@ export function BookPickup() {
   );
 
   return (
-    <div className="min-h-dvh" style={{background:"#f7f5f0",fontFamily:"var(--font-body)"}}>
+    <div className="min-h-svh" style={{background:"#f7f5f0",fontFamily:"var(--font-body)"}}>
       <div className="max-w-2xl mx-auto px-6 py-10">
         <button type="button" onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 opacity-45 hover:opacity-75 transition-opacity" style={{color:"#1a2e1c",fontSize:"0.78rem"}}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
@@ -318,7 +324,7 @@ export function BookPickup() {
                 return (
                   <button type="button" key={wt.value}
                     onClick={() => setForm(f => ({ ...f, wasteTypes: active ? f.wasteTypes.filter(t => t !== wt.value) : [...f.wasteTypes, wt.value] }))}
-                    className="flex items-center gap-3 p-3 rounded-xl text-left transition-all active:scale-[0.98]"
+                    className="flex items-center gap-3 p-3 rounded-xl text-left transition-colors"
                     style={{ background: active ? "#1a2e1c" : "#f7f5f0", border: `1.5px solid ${active ? "#1a2e1c" : "rgba(26,46,28,0.12)"}` }}>
                     <span style={{fontSize:"1.2rem"}}>{wt.emoji}</span>
                     <div className="flex-1 min-w-0">
@@ -350,7 +356,7 @@ export function BookPickup() {
               <div>
                 <label style={lbl}>PICKUP DATE</label>
                 <div className="relative">
-                  <button type="button" onClick={() => setShowCal(v => !v)} className="w-full flex items-center gap-2 transition-all"
+                  <button type="button" onClick={() => setShowCal(v => !v)} className="w-full flex items-center gap-2 transition-colors"
                     style={{...inp,textAlign:"left",cursor:"pointer",borderColor:showCal?"#008751":"transparent"}}>
                     <CalendarIcon className="w-4 h-4 flex-shrink-0" style={{color:"#008751"}} />
                     <span style={{color:date?"#1a2e1c":"#5a6e5c",fontSize:"0.875rem"}}>{date ? format(date,"MMMM d, yyyy") : "Select a date"}</span>
@@ -364,7 +370,7 @@ export function BookPickup() {
                   {TIME_SLOTS.map(slot => {
                     const active = form.time === slot;
                     return (
-                      <button type="button" key={slot} onClick={() => set("time", slot)} className="px-3 py-2.5 rounded-xl text-left transition-all"
+                      <button type="button" key={slot} onClick={() => set("time", slot)} className="px-3 py-2.5 rounded-xl text-left transition-colors"
                         style={{background:active?"#1a2e1c":"#f7f5f0",color:active?"#f7f5f0":"#1a2e1c",fontSize:"0.8rem",fontWeight:active?500:400,border:`1.5px solid ${active?"#1a2e1c":"transparent"}`}}>
                         {slot}
                       </button>
@@ -393,7 +399,7 @@ export function BookPickup() {
                 </div>
                 <div className="flex gap-2 mt-3 flex-wrap">
                   {[5,10,20,50].map(kg => (
-                    <button type="button" key={kg} onClick={() => set("estimatedWeight", String(kg))} className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                    <button type="button" key={kg} onClick={() => set("estimatedWeight", String(kg))} className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
                       style={{ background: parseFloat(form.estimatedWeight) === kg ? "#1a2e1c" : "#f0ece4", color: parseFloat(form.estimatedWeight) === kg ? "#f7f5f0" : "#5a6e5c" }}>
                       {kg}kg
                     </button>

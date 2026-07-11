@@ -102,7 +102,7 @@ function AgentAssign({ pickup, onAssigned }: { pickup: Pickup; onAssigned: (id: 
             <div className={`grid grid-cols-2 gap-2 ${selected ? "mt-3" : ""}`}>
               {agents.map(agent => (
                 <button key={agent.id} onClick={() => assign(agent.name)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-left transition-all hover:bg-[#e8f0e4] active:scale-[0.98]"
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-[#e8f0e4]"
                   style={{ background: selected === agent.name ? "#1a2e1c" : "#f7f5f0", border: `1px solid ${selected === agent.name ? "#1a2e1c" : "rgba(26,46,28,0.08)"}` }}>
                   <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ background: selected === agent.name ? "rgba(133,196,138,0.2)" : "#e8f0e4" }}>
@@ -147,10 +147,10 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(10,22,11,0.72)" }}
+      style={{ background: "rgba(10,22,11,0.6)" }}
       onClick={onClose}>
       <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl overflow-hidden"
-        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.3)", maxHeight: "92dvh", overflowY: "auto" }}
+        style={{ background: "#fff", boxShadow: "0 8px 24px rgba(10,22,11,0.25)", maxHeight: "92vh", overflowY: "auto" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -201,7 +201,7 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
               {/* Phone — copyable */}
               {phone ? (
                 <button onClick={copyPhone}
-                  className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all hover:bg-[#e8f0e4] active:scale-[0.98]"
+                  className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-colors hover:bg-[#e8f0e4]"
                   style={{ background: "#f7f5f0", border: "1px solid rgba(26,46,28,0.08)" }}>
                   <div className="flex items-center gap-3">
                     <Phone className="w-4 h-4" style={{ color: "#008751" }} />
@@ -304,7 +304,7 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
           {/* Directions link */}
           <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickup.address + ", Nigeria")}`}
             target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-90"
+            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-colors hover:opacity-90"
             style={{ background: "#1a2e1c", color: "#f7f5f0", textDecoration: "none" }}>
             📍 Get directions to this address
             <ArrowUpRight className="w-4 h-4 ml-auto" />
@@ -333,21 +333,21 @@ function PickupDetailModal({ pickup, onClose, onComplete, onStart, onCancel, onA
             )}
             {pickup.status === "scheduled" && !(pickup.source === "urgent" && !pickup.agent_name) && (
               <button onClick={() => { onStart(pickup.id); onClose(); }}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium transition-all hover:opacity-80"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium transition-colors hover:opacity-80"
                 style={{ background: "rgba(245,158,11,0.12)", color: "#856404", border: "1px solid rgba(245,158,11,0.2)" }}>
                 Mark In Progress
               </button>
             )}
             {(pickup.status === "scheduled" || pickup.status === "in_progress") && !(pickup.source === "urgent" && !pickup.agent_name) && (
               <button onClick={() => { onComplete(pickup); onClose(); }}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all hover:opacity-90"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-colors hover:opacity-90"
                 style={{ background: "#008751", color: "#fff" }}>
                 <CheckCircle className="w-3.5 h-3.5" /> Complete Pickup
               </button>
             )}
             {pickup.status === "scheduled" && (
               <button onClick={() => { onCancel(pickup.id); onClose(); }}
-                className="px-4 py-2.5 rounded-xl text-xs font-medium transition-all hover:opacity-80"
+                className="px-4 py-2.5 rounded-xl text-xs font-medium transition-colors hover:opacity-80"
                 style={{ background: "#fde8e8", color: "#c0392b" }}>
                 Cancel
               </button>
@@ -368,8 +368,8 @@ function ConfirmModal({ pickup, onClose, onConfirm, loading }: {
   const [weight, setWeight] = useState(pickup.estimated_weight?.toString() ?? "");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: "rgba(10,22,11,0.72)" }}>
-      <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 25px 60px rgba(10,22,11,0.3)" }}>
+      style={{ background: "rgba(10,22,11,0.6)" }}>
+      <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 8px 24px rgba(10,22,11,0.25)" }}>
         <div className="px-6 py-5" style={{ background: "#1a2e1c" }}>
           <div className="flex items-center justify-between">
             <div>
@@ -398,7 +398,7 @@ function ConfirmModal({ pickup, onClose, onConfirm, loading }: {
           <div className="flex gap-3">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-medium" style={{ background: "#f0ece4", color: "#5a6e5c" }}>Cancel</button>
             <button disabled={loading || !weight} onClick={() => onConfirm(pickup.id, parseFloat(weight))}
-              className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors hover:opacity-90 disabled:opacity-50"
               style={{ background: "#008751", color: "#fff" }}>
               {loading ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <><CheckCircle className="w-4 h-4" /> Mark Complete</>}
             </button>
@@ -562,10 +562,10 @@ function AgentsManager({ pickups, subs }: { pickups: any[]; subs: any[] }) {
           Print a hardcopy to hand to your drivers. Includes address, phone, waste type and a signature field.
         </p>
         <div className="flex gap-3">
-          <button onClick={() => setPrintMode("subscriptions")} className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
+          <button onClick={() => setPrintMode("subscriptions")} className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
               🖨️ Subscriptions ({todaysSubs.length})
             </button>
-            <button onClick={() => setPrintMode("urgent")} className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90" style={{ background: "#c0392b", color: "#fff", cursor: "pointer" }}>
+            <button onClick={() => setPrintMode("urgent")} className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90" style={{ background: "#c0392b", color: "#fff", cursor: "pointer" }}>
               ⚡ Urgent ({scheduledUrgent.length})
             </button>
         </div>
@@ -598,7 +598,7 @@ function AgentsManager({ pickups, subs }: { pickups: any[]; subs: any[] }) {
               style={{ background: "#f0ece4", border: "1.5px solid transparent", borderRadius: "10px", color: "#1a2e1c", fontSize: "0.85rem", padding: "10px 14px", outline: "none" }}
               onFocus={e => (e.target.style.borderColor = "#008751")} onBlur={e => (e.target.style.borderColor = "transparent")} />
           </div>
-          <button onClick={addAgent} disabled={saving} className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60" style={{ background: "#0e1f0f", color: "#fff" }}>
+          <button onClick={addAgent} disabled={saving} className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors hover:opacity-90 disabled:opacity-60" style={{ background: "#0e1f0f", color: "#fff" }}>
             {saving ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : "+ Add to roster"}
           </button>
         </div>
@@ -655,7 +655,7 @@ function ReceiptViewerModal({ payment, onClose, onApprove, onReject }: { payment
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <div>
@@ -737,9 +737,9 @@ function SubscriptionDetailModal({ sub, onClose }: { sub: any; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
-      style={{ background: "rgba(10,22,11,0.72)" }}
+      style={{ background: "rgba(10,22,11,0.6)" }}
       onClick={onClose}>
-      <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", maxHeight: "90dvh", overflowY: "auto" }}
+      <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", maxHeight: "90vh", overflowY: "auto" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -1104,7 +1104,7 @@ export function AdminDashboard() {
   const commercialCount = activeSubs.filter(s => s.plan_type === "commercial").length;
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
         <p style={{ color: "rgba(133,196,138,0.6)", fontSize: "0.82rem" }}>Loading admin dashboard...</p>
@@ -1113,7 +1113,7 @@ export function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.3s ease" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)", animation: "fadeIn 0.3s ease" }}>
       <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`}</style>
 
       {/* Nigerian flag strip */}
@@ -1211,7 +1211,7 @@ export function AdminDashboard() {
                   const count = f === "all" ? pickups.length : pickups.filter(p => p.status === f).length;
                   return (
                     <button key={f} onClick={() => setFilter(f)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium flex-shrink-0 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium flex-shrink-0 transition-colors"
                       style={{ background: filter === f ? "#1a2e1c" : "#fff", color: filter === f ? "#fff" : "#5a6e5c", border: `1px solid ${filter === f ? "#1a2e1c" : "rgba(26,46,28,0.1)"}` }}>
                       {labels[f]}
                       <span className="px-1.5 py-0.5 rounded-full text-[10px]"
@@ -1300,7 +1300,7 @@ export function AdminDashboard() {
                             </span>
                           ) : (
                             <button onClick={(e) => { e.stopPropagation(); handleStatusChange(pickup.id, "in_progress"); }}
-                              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+                              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:opacity-80"
                               style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.2)" }}>
                               Start
                             </button>
@@ -1309,7 +1309,7 @@ export function AdminDashboard() {
                         {(pickup.status === "scheduled" || pickup.status === "in_progress") && (
                           pickup.source === "urgent" && !pickup.agent_name ? null : (
                             <button onClick={(e) => { e.stopPropagation(); setSelected(pickup); }}
-                              className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all hover:opacity-90"
+                              className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors hover:opacity-90"
                               style={{ background: "#008751", color: "#fff" }}>
                               <CheckCircle className="w-3.5 h-3.5" /> Complete
                             </button>
@@ -1404,7 +1404,7 @@ export function AdminDashboard() {
                       <span style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "0.9rem" }}>{m.value}</span>
                     </div>
                     <div className="h-1.5 rounded-full" style={{ background: "rgba(133,196,138,0.1)" }}>
-                      <div className="h-full rounded-full transition-all" style={{ width: `${m.pct}%`, background: "linear-gradient(to right, #008751, #85c48a)" }} />
+                      <div className="h-full rounded-full transition-colors" style={{ width: `${m.pct}%`, background: "linear-gradient(to right, #008751, #85c48a)" }} />
                     </div>
                   </div>
                 ))}
@@ -1446,7 +1446,7 @@ export function AdminDashboard() {
                 { key: "cleanouts", label: "Bulk Clean-outs", count: cleanouts.length, icon: "📦", color: "#5a6e5c", bg: "#f0ece4" },
               ].map(sec => (
                 <button key={sec.key} onClick={() => { setBillingSection(sec.key as any); setBillingSearch(""); setPaymentFilter("all"); }}
-                  className="flex flex-col items-start p-4 rounded-2xl text-left transition-all hover:scale-[0.98]"
+                  className="flex flex-col items-start p-4 rounded-2xl text-left transition-colors hover:scale-[0.98]"
                   style={{ background: billingSection === sec.key ? "#0e1f0f" : "#fff", border: `1.5px solid ${billingSection === sec.key ? "#0e1f0f" : "rgba(26,46,28,0.08)"}`, cursor: "pointer" }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: billingSection === sec.key ? "rgba(247,245,240,0.1)" : sec.bg }}>
                     <span style={{ fontSize: "1.1rem" }}>{sec.icon}</span>
@@ -1510,7 +1510,7 @@ export function AdminDashboard() {
                   <div className="flex gap-2 flex-wrap mb-3">
                     {["all","success","pending","rejected"].map(f => (
                       <button key={f} onClick={() => setPaymentFilter(f as any)}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
                         style={{ background: paymentFilter === f ? "#0e1f0f" : "#f0ece4", color: paymentFilter === f ? "#fff" : "#5a6e5c", cursor: "pointer", textTransform: "capitalize" }}>
                         {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
                       </button>
@@ -1626,9 +1626,21 @@ export function AdminDashboard() {
                               <button onClick={() => setQuoting(c)} className="px-3 py-1.5 rounded-lg text-xs font-medium" style={{ background: "#0e1f0f", color: "#f7f5f0", cursor: "pointer" }}>Send quote</button>
                             )
                           ) : (
-                            <span style={{ padding: "2px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, background: "#e8f0e4", color: "#2d5230" }}>
-                              {c.status === "quoted" ? `Quoted ₦${c.quote_amount?.toLocaleString("en-NG")}` : c.status}
-                            </span>
+                            (() => {
+                              const adminStatusMap: Record<string, { bg: string; color: string; label: string }> = {
+                                quoted:     { bg: "#fff8e6", color: "#92400e", label: `Quoted ₦${c.quote_amount?.toLocaleString("en-NG")}` },
+                                paid:       { bg: "#d4e8d5", color: "#1a2e1c", label: `Paid ₦${c.quote_amount?.toLocaleString("en-NG")}` },
+                                dispatched: { bg: "#dce8dd", color: "#2d5230", label: "Agent dispatched" },
+                                completed:  { bg: "#d4e8d5", color: "#008751", label: "Completed ✓" },
+                                declined:   { bg: "#fde8e8", color: "#c0392b", label: "Declined" },
+                              };
+                              const s = adminStatusMap[c.status] ?? { bg: "#e8f0e4", color: "#2d5230", label: c.status };
+                              return (
+                                <span style={{ padding: "2px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, background: s.bg, color: s.color }}>
+                                  {s.label}
+                                </span>
+                              );
+                            })()
                           )}
                         </div>
                       </div>
@@ -1677,13 +1689,13 @@ export function AdminDashboard() {
       {/* Photo lightbox */}
       {photoPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(0,0,0,0.95)" }}
+          style={{ background: "rgba(0,0,0,0.9)" }}
           onClick={() => setPhotoPreview(null)}>
           <div className="relative max-w-lg w-full" onClick={e => e.stopPropagation()}>
             <button onClick={() => setPhotoPreview(null)} className="absolute -top-10 right-0 p-2 rounded-full hover:bg-white/10 transition-colors">
               <X className="w-5 h-5 text-white" />
             </button>
-            <img src={photoPreview} alt="Waste pickup" className="w-full rounded-2xl object-contain max-h-[80dvh]" />
+            <img src={photoPreview} alt="Waste pickup" className="w-full rounded-2xl object-contain max-h-[80vh]" />
           </div>
         </div>
       )}

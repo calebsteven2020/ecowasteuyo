@@ -45,7 +45,7 @@ export function Contact() {
   const { user } = useAuth();
 
   return (
-    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }} className="min-h-dvh">
+    <div style={{ fontFamily: "var(--font-body)", background: "#f7f5f0" }} className="min-h-svh">
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50"
@@ -74,7 +74,7 @@ export function Contact() {
           <div className="flex items-center gap-2">
             {user ? (
               <button onClick={() => navigate("/dashboard")}
-                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-90"
                 style={{ background: "#008751", color: "#fff" }}>
                 My Dashboard
               </button>
@@ -86,7 +86,7 @@ export function Contact() {
                   Sign in
                 </button>
                 <button onClick={() => navigate("/login")}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90 whitespace-nowrap"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-90 whitespace-nowrap"
                   style={{ background: "#008751", color: "#fff" }}>
                   <span className="hidden sm:inline">Get started free</span>
                   <span className="sm:hidden">Get started</span>

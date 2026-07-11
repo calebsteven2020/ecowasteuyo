@@ -59,7 +59,7 @@ export function Dashboard() {
   const handleSignOut = async () => { await signOut(); navigate("/login"); };
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f0ede8" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f0ede8" }}>
       <div className="w-7 h-7 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
@@ -67,7 +67,7 @@ export function Dashboard() {
   const HERO_IMG = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
 
       {/* ── Header with hero image ─────────────────────── */}
       {/*
@@ -84,6 +84,7 @@ export function Dashboard() {
       */}
       <div className="relative" style={{ background: "#0e1f0f", contain: "paint" }}>
         <img
+          data-hero
           src={HERO_IMG}
           alt=""
           className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
@@ -103,14 +104,14 @@ export function Dashboard() {
               </div>
               <span style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "0.9rem" }}>EcoWaste</span>
             </div>
-            <button onClick={handleSignOut} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs" style={{ color: "rgba(247,245,240,0.4)", background: "rgba(247,245,240,0.06)" }}>
+            <button onClick={handleSignOut} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs" style={{ color: "rgba(247,245,240,0.65)", background: "rgba(247,245,240,0.06)" }}>
               <LogOut className="w-3 h-3" /> Sign out
             </button>
           </div>
 
           {/* Greeting + activity inline */}
           <div className="mb-5">
-            <p style={{ color: "rgba(247,245,240,0.35)", fontSize: "0.68rem", letterSpacing: "0.06em" }}>GOOD {greeting.toUpperCase()}</p>
+            <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.68rem", letterSpacing: "0.06em" }}>GOOD {greeting.toUpperCase()}</p>
             <h1 style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 800, fontSize: "1.65rem", marginTop: "0.15rem", lineHeight: 1.1 }}>{name}</h1>
           </div>
 
@@ -123,7 +124,7 @@ export function Dashboard() {
             ].map((s, i) => (
               <div key={s.label} className="text-center" style={{ borderRight: i < 2 ? "1px solid rgba(247,245,240,0.08)" : "none" }}>
                 <p style={{ fontFamily: "var(--font-display)", color: s.color, fontWeight: 800, fontSize: "1.55rem", lineHeight: 1 }}>{s.value}</p>
-                <p style={{ color: "rgba(247,245,240,0.3)", fontSize: "0.6rem", marginTop: "0.3rem", letterSpacing: "0.04em" }}>{s.label.toUpperCase()}</p>
+                <p style={{ color: "rgba(247,245,240,0.55)", fontSize: "0.6rem", marginTop: "0.3rem", letterSpacing: "0.04em" }}>{s.label.toUpperCase()}</p>
               </div>
             ))}
           </div>
@@ -131,14 +132,14 @@ export function Dashboard() {
 
         {/* Current Plan card — prominent, just plan name, no price */}
         {sub ? (
-          <button onClick={() => navigate("/subscriptions")} className="w-full text-left" style={{ borderTop: "1px solid rgba(247,245,240,0.08)" }}>
+          <button onClick={() => navigate("/subscriptions")} className="relative z-10 w-full text-left" style={{ borderTop: "1px solid rgba(247,245,240,0.08)" }}>
             <div className="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: sub.manifest_status === "green" ? "rgba(74,222,128,0.15)" : "rgba(248,113,113,0.15)" }}>
                   <span className="w-2 h-2 rounded-full" style={{ background: sub.manifest_status === "green" ? "#4ade80" : "#f87171" }} />
                 </div>
                 <div>
-                  <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.6rem", letterSpacing: "0.07em" }}>CURRENT PLAN</p>
+                  <p style={{ color: "rgba(247,245,240,0.7)", fontSize: "0.6rem", letterSpacing: "0.07em" }}>CURRENT PLAN</p>
                   <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 800, fontSize: "1rem", marginTop: "0.05rem", textTransform: "capitalize" }}>
                     {sub.plan_type === "basic" ? "Basic" : "Commercial"} Plan
                   </p>
@@ -146,7 +147,7 @@ export function Dashboard() {
               </div>
               <div className="text-right">
                 {sub.manifest_status === "green" ? (
-                  <p style={{ color: "rgba(247,245,240,0.35)", fontSize: "0.68rem" }}>Next billing · {sub.next_billing_date}</p>
+                  <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.68rem" }}>Next billing · {sub.next_billing_date}</p>
                 ) : (
                   <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ background: "rgba(248,113,113,0.15)" }}>
                     <p style={{ color: "#f87171", fontSize: "0.7rem", fontWeight: 600 }}>Payment overdue</p>
@@ -156,11 +157,11 @@ export function Dashboard() {
             </div>
           </button>
         ) : (
-          <button onClick={() => navigate("/subscriptions")} className="w-full text-left" style={{ borderTop: "1px solid rgba(247,245,240,0.08)" }}>
+          <button onClick={() => navigate("/subscriptions")} className="relative z-10 w-full text-left" style={{ borderTop: "1px solid rgba(247,245,240,0.08)" }}>
             <div className="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
               <div>
-                <p style={{ color: "rgba(247,245,240,0.35)", fontSize: "0.6rem", letterSpacing: "0.07em" }}>CURRENT PLAN</p>
-                <p style={{ fontFamily: "var(--font-display)", color: "rgba(247,245,240,0.45)", fontWeight: 600, fontSize: "0.95rem", marginTop: "0.05rem" }}>No active plan</p>
+                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem", letterSpacing: "0.07em" }}>CURRENT PLAN</p>
+                <p style={{ fontFamily: "var(--font-display)", color: "rgba(247,245,240,0.7)", fontWeight: 600, fontSize: "0.95rem", marginTop: "0.05rem" }}>No active plan</p>
               </div>
               <span className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold" style={{ background: "#008751", color: "#fff" }}>
                 Subscribe <ChevronRight className="w-3 h-3" />
@@ -203,7 +204,7 @@ export function Dashboard() {
 
         {/* Primary actions */}
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => navigate("/subscriptions")} className="flex flex-col gap-2 p-4 rounded-2xl text-left transition-all active:scale-[0.97]" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
+          <button onClick={() => navigate("/subscriptions")} className="flex flex-col gap-2 p-4 rounded-2xl text-left transition-colors" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#e8f0e4" }}>
               <Recycle className="w-5 h-5" style={{ color: "#008751" }} />
             </div>
@@ -213,7 +214,7 @@ export function Dashboard() {
             </div>
           </button>
 
-          <button onClick={() => navigate("/book-pickup")} className="flex flex-col gap-2 p-4 rounded-2xl text-left transition-all active:scale-[0.97]" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
+          <button onClick={() => navigate("/book-pickup")} className="flex flex-col gap-2 p-4 rounded-2xl text-left transition-colors" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.07)" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "#fde8e8" }}>
               <Zap className="w-5 h-5" style={{ color: "#c0392b" }} />
             </div>

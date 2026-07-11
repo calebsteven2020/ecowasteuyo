@@ -43,13 +43,13 @@ export function ResetPassword() {
   };
 
   if (!validSession) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh flex flex-col items-center justify-center px-6" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       {/* Nigerian flag strip */}
       <div className="fixed top-0 left-0 right-0 h-1 flex z-50">
         <div className="flex-1" style={{ background: "#008751" }} />
@@ -125,7 +125,7 @@ export function ResetPassword() {
               </div>
 
               <button onClick={handleReset} disabled={loading}
-                className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-60"
+                className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-medium transition-colors hover:opacity-90 disabled:opacity-60"
                 style={{ background: "#1a2e1c", color: "#f7f5f0", fontSize: "0.9rem" }}>
                 {loading
                   ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />

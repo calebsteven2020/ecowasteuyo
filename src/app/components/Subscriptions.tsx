@@ -8,6 +8,7 @@ import {
 import { supabase } from "../../../utils/supabase/client";
 import { useAuth } from "../context/AuthContext";
 import { payWithKorapay, newPaymentReference } from "../../../utils/korapay/checkout";import { BANK_TRANSFER_DETAILS } from "../../../utils/korapay/info";
+import { isProfileComplete, PROFILE_INCOMPLETE_MESSAGE } from "../../../utils/profile/isProfileComplete";
 
 const formatNaira = (n: number) => "₦" + n.toLocaleString("en-NG");
 
@@ -64,68 +65,7 @@ export function Subscriptions() {
   const [subscribing, setSubscribing] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [showReceiptUpload, setShowReceiptUpload] = useState(false);
-  const [showChangePlan, setShowChangePlan] = useState(false);
-  const [pendingUpgrade, setPendingUpgrade] = useState(false);
   const [payments, setPayments] = useState<any[]>([]);
-
-  // Run the upgrade payment AFTER the ChangePlanModal has been closed and
-  // fully unmounted. Calling payWithKorapay while a modal with z-50 + backdrop
-  // blur is still mounted causes Korapay's widget to open behind the overlay
-  // and immediately get dismissed. useEffect guarantees the DOM has updated
-  // (modal gone) before we touch Korapay.
-  useEffect(() => {
-    if (!pendingUpgrade || !user || !sub) return;
-    setPendingUpgrade(false);
-
-    const plan = PLANS.commercial;
-    const reference = newPaymentReference("UPG");
-    let handled = false;
-    setSubscribing(true);
-
-    payWithKorapay({
-      amount: plan.price,
-      email: user.email!,
-      reference,
-      narration: "EcoWaste upgrade to Commercial Plan",
-      onSuccess: async (data) => {
-        if (handled) return;
-        handled = true;
-        const todayDate = new Date();
-        const today = todayDate.toISOString().split("T")[0];
-        const nextBillingDate = new Date(todayDate);
-        nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-        const nextBilling = nextBillingDate.toISOString().split("T")[0];
-        const updates = {
-          plan_type: "commercial" as PlanKey,
-          price: plan.price,
-          pickups_per_week: plan.pickupsPerWeek,
-          last_payment_date: today,
-          next_billing_date: nextBilling,
-          status: "active" as const,
-          manifest_status: "green" as const,
-        };
-        const { error } = await supabase.from("subscriptions").update(updates).eq("id", sub.id);
-        if (error) { toast.error("Payment succeeded but plan update failed: " + error.message); setSubscribing(false); return; }
-        await supabase.from("payments").insert({
-          user_id: user.id, purpose: "subscription", subscription_id: sub.id,
-          amount: plan.price, channel: "korapay", status: "success",
-          korapay_reference: data?.reference ?? reference,
-        });
-        await supabase.from("notifications").insert({
-          user_id: user.id,
-          title: "Plan upgraded ✅",
-          message: `You're now on the Commercial Plan (${formatNaira(plan.price)}/month). Next payment on ${nextBilling}.`,
-          type: "success",
-        });
-        setSub({ ...sub, ...updates });
-        fetchPayments();
-        toast.success("Upgraded to Commercial Plan.");
-        setSubscribing(false);
-      },
-      onFailed: () => { if (!handled) { handled = true; toast.error("Payment failed. Please try again."); setSubscribing(false); } },
-      onClose: () => { if (!handled) setSubscribing(false); },
-    }).catch(() => { toast.error("Couldn't open Korapay. Please try again."); setSubscribing(false); });
-  }, [pendingUpgrade]);
 
   const fetchSub = async () => {
     if (!user) return;
@@ -304,6 +244,11 @@ export function Subscriptions() {
   };
 
   const handleSubscribe = () => {
+    if (!isProfileComplete(profile)) {
+      toast.error(PROFILE_INCOMPLETE_MESSAGE);
+      navigate("/profile");
+      return;
+    }
     if (selectedMethod === "korapay") return handleKorapaySubscribe();
     return handleBankTransferSubscribe();
   };
@@ -311,6 +256,11 @@ export function Subscriptions() {
   // ── Pay an overdue (past_due) subscription via Korapay ──
   const payOverdueWithKorapay = async () => {
     if (!sub || !user) return;
+    if (!isProfileComplete(profile)) {
+      toast.error(PROFILE_INCOMPLETE_MESSAGE);
+      navigate("/profile");
+      return;
+    }
     const reference = newPaymentReference("SUB");
     let handled = false;
     await payWithKorapay({
@@ -344,13 +294,13 @@ export function Subscriptions() {
   };
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="max-w-4xl mx-auto px-6 py-10">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 text-sm hover:opacity-70" style={{ color: "#5a6e5c" }}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
@@ -447,13 +397,6 @@ export function Subscriptions() {
                   </div>
                 </div>
 
-                {/* Only show change plan if upgrade is possible (basic → commercial) */}
-                {sub.plan_type === "basic" && (
-                  <button onClick={() => setShowChangePlan(true)} className="w-full py-3 rounded-xl text-sm font-medium" style={{ background: "#f0ece4", color: "#1a2e1c" }}>
-                    Upgrade to Commercial Plan
-                  </button>
-                )}
-
                 <p style={{ color: "#5a6e5c", fontSize: "0.72rem", textAlign: "center" }}>
                   Your plan renews automatically each month. To cancel it, contact support.
                 </p>
@@ -468,7 +411,7 @@ export function Subscriptions() {
                 const plan = PLANS[key];
                 const active = selectedPlan === key;
                 return (
-                  <button key={key} onClick={() => setSelectedPlan(key)} className="text-left rounded-2xl p-6 transition-all"
+                  <button key={key} onClick={() => setSelectedPlan(key)} className="text-left rounded-2xl p-6 transition-colors"
                     style={{ background: active ? "#1a2e1c" : "#fff", border: `1.5px solid ${active ? "#1a2e1c" : "rgba(26,46,28,0.08)"}` }}>
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: active ? "rgba(133,196,138,0.18)" : "#e8f0e4" }}>
                       <plan.icon className="w-5 h-5" style={{ color: active ? "#85c48a" : "#008751" }} />
@@ -498,7 +441,7 @@ export function Subscriptions() {
                 {PAYMENT_METHODS.map(m => {
                   const active = selectedMethod === m.key;
                   return (
-                    <button key={m.key} onClick={() => setSelectedMethod(m.key)} className="flex items-center gap-3 p-3.5 rounded-xl text-left transition-all"
+                    <button key={m.key} onClick={() => setSelectedMethod(m.key)} className="flex items-center gap-3 p-3.5 rounded-xl text-left transition-colors"
                       style={{ background: active ? "#e8f0e4" : "#f7f5f0", border: `1.5px solid ${active ? "#008751" : "transparent"}` }}>
                       <m.icon className="w-4 h-4 flex-shrink-0" style={{ color: "#008751" }} />
                       <div className="flex-1">
@@ -513,7 +456,7 @@ export function Subscriptions() {
               <p style={{ color: "#5a6e5c", fontSize: "0.72rem", marginTop: "0.9rem", lineHeight: 1.6 }}>
                 Powered by Paystack / Flutterwave. You'll be charged automatically on the 1st of every month. If a payment fails, your house is marked RED on the driver's manifest and the truck will skip your address until you pay.
               </p>
-              <button onClick={handleSubscribe} disabled={subscribing} className="w-full mt-5 py-3.5 rounded-xl font-medium transition-all hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
+              <button onClick={handleSubscribe} disabled={subscribing} className="w-full mt-5 py-3.5 rounded-xl font-medium transition-colors hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
                 {subscribing ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : `Subscribe to ${PLANS[selectedPlan].label} — ${formatNaira(PLANS[selectedPlan].price)}/mo`}
               </button>
             </div>
@@ -547,7 +490,7 @@ export function Subscriptions() {
         )}
 
         {/* 2. THE ADD-ON — bulk clean-out, available to everyone */}
-        <button onClick={() => setShowBulk(true)} className="w-full mt-6 flex items-center justify-between p-5 rounded-2xl transition-all hover:opacity-90" style={{ background: "#e8f0e4" }}>
+        <button onClick={() => setShowBulk(true)} className="w-full mt-6 flex items-center justify-between p-5 rounded-2xl transition-colors hover:opacity-90" style={{ background: "#e8f0e4" }}>
           <div className="flex items-center gap-3 text-left">
             <Truck className="w-5 h-5 flex-shrink-0" style={{ color: "#008751" }} />
             <div>
@@ -566,83 +509,6 @@ export function Subscriptions() {
           onSubmitted={() => { fetchPayments(); setShowReceiptUpload(false); }}
         />
       )}
-      {showChangePlan && sub && (
-        <ChangePlanModal
-          sub={sub}
-          onClose={() => setShowChangePlan(false)}
-          onUpgradeConfirmed={() => setPendingUpgrade(true)}
-        />
-      )}
-    </div>
-  );
-}
-
-// ── Change Plan modal — enforces downgrade/upgrade rules ──
-function ChangePlanModal({ sub, onClose, onUpgradeConfirmed }: { sub: Subscription; onClose: () => void; onUpgradeConfirmed: () => void }) {
-  const isDowngrade = sub.plan_type === "commercial";
-
-  const confirm = () => {
-    if (isDowngrade) return;
-    // Close modal first, then parent's useEffect fires Korapay after unmount
-    onClose();
-    onUpgradeConfirmed();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
-      <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
-        <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
-          <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Change Plan</p>
-          <button onClick={onClose}><X className="w-4 h-4" style={{ color: "rgba(247,245,240,0.6)" }} /></button>
-        </div>
-        <div className="p-6 flex flex-col gap-4">
-
-          {/* Current plan */}
-          <div className="px-4 py-3 rounded-xl" style={{ background: "#f0ece4" }}>
-            <p style={{ color: "#5a6e5c", fontSize: "0.7rem" }}>Current plan</p>
-            <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.9rem" }} className="capitalize">{sub.plan_type} Plan · {formatNaira(sub.price)}/mo</p>
-          </div>
-
-          {/* Downgrade blocked notice */}
-          {sub.plan_type === "commercial" && (
-            <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "#fde8e8" }}>
-              <span className="text-lg flex-shrink-0">🚫</span>
-              <div>
-                <p style={{ color: "#c0392b", fontWeight: 600, fontSize: "0.82rem" }}>Downgrade not available</p>
-                <p style={{ color: "#9b3026", fontSize: "0.75rem", marginTop: "0.2rem", lineHeight: 1.5 }}>
-                  Commercial plans cannot be downgraded to Basic. Contact support if you need to cancel.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Upgrade option */}
-          {sub.plan_type === "basic" && (
-            <>
-              <div className="rounded-xl p-4" style={{ background: "#e8f0e4", border: "1.5px solid #008751" }}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p style={{ color: "#1a2e1c", fontWeight: 700, fontSize: "0.9rem" }}>Commercial Plan</p>
-                    <p style={{ color: "#5a6e5c", fontSize: "0.75rem", marginTop: "0.2rem" }}>3x pickups/week · shops &amp; offices</p>
-                  </div>
-                  <p style={{ fontFamily: "var(--font-display)", color: "#008751", fontWeight: 800, fontSize: "1rem" }}>{PLANS.commercial.priceRange}/mo</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-3.5 rounded-xl" style={{ background: "#fff3cd" }}>
-                <span className="text-base flex-shrink-0">ℹ️</span>
-                <p style={{ color: "#856404", fontSize: "0.75rem", lineHeight: 1.5 }}>
-                  Upgrading requires paying the full Commercial plan amount now. Your billing cycle restarts today — you will be charged again in one month.
-                </p>
-              </div>
-              <button onClick={confirm} className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
-                Pay {formatNaira(PLANS.commercial.price)} &amp; upgrade to Commercial
-              </button>
-            </>
-          )}
-
-          <button onClick={onClose} className="w-full py-3 rounded-xl text-sm font-medium" style={{ background: "#f0ece4", color: "#5a6e5c" }}>Cancel</button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -701,7 +567,7 @@ function ReceiptUploadModal({ sub, onClose, onSubmitted }: { sub: Subscription; 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Upload Transfer Receipt</p>
@@ -812,7 +678,7 @@ function BulkCleanoutModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.76)" }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0" style={{ background: "rgba(10,22,11,0.65)" }}>
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Bulk Clean-out</p>

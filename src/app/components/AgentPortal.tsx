@@ -177,7 +177,7 @@ export function AgentPortal() {
   const redCount = manifest.filter(m => m.manifest_status === "red").length;
 
   if (loading) return (
-    <div className="min-h-dvh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
+    <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
         <p style={{ color: "#5a6e5c", fontSize: "0.8rem" }}>Loading your route…</p>
@@ -186,7 +186,7 @@ export function AgentPortal() {
   );
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <style>{`
         @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.35} }
@@ -247,7 +247,7 @@ export function AgentPortal() {
             <span style={{ color: "#008751", fontSize: "0.75rem", fontWeight: 700 }}>{collectedKg.toFixed(0)}kg collected</span>
           </div>
           <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(26,46,28,0.08)" }}>
-            <div className="h-full rounded-full transition-all" style={{
+            <div className="h-full rounded-full transition-colors" style={{
               width: pickups.length ? `${(done.filter(p => p.status === "completed").length / pickups.length) * 100}%` : "0%",
               background: "#008751",
             }} />
@@ -333,21 +333,21 @@ export function AgentPortal() {
                         <div className="flex gap-2 mt-3.5">
                           <a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickup.address + ", Nigeria")}`}
                             target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all hover:opacity-80 flex-shrink-0"
+                            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-colors hover:opacity-80 flex-shrink-0"
                             style={{ background: "#f0ece4", color: "#1a2e1c" }}>
                             <Navigation2 className="w-3.5 h-3.5" style={{ color: "#008751" }} /> Directions
                           </a>
 
                           {pickup.status === "scheduled" && (
                             <button onClick={() => handleStart(pickup)}
-                              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]"
+                              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors hover:opacity-90"
                               style={{ background: "#008751", color: "#fff" }}>
                               <CheckCircle className="w-4 h-4" /> Start
                             </button>
                           )}
                           {inProgress && (
                             <button onClick={() => setSelectedPickup(pickup)}
-                              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]"
+                              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-colors hover:opacity-90"
                               style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
                               <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#85c48a", animation: "pulseDot 1.2s infinite" }} />
                               Mark complete
@@ -364,39 +364,57 @@ export function AgentPortal() {
         )}
 
         {/* Manifest */}
-        {activeTab === "manifest" && (
-          <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
-              <p style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "0.92rem" }}>Subscriber manifest</p>
-              <p style={{ color: "#5a6e5c", fontSize: "0.72rem", marginTop: "0.1rem" }}>
-                {manifest.length} on file · {redCount} flagged for bypass — no payment, no stop
-              </p>
-            </div>
-            {manifest.length === 0 ? (
-              <p className="px-5 py-10 text-center" style={{ color: "#5a6e5c", fontSize: "0.85rem" }}>No subscribers on file yet.</p>
-            ) : (
-              manifest.map((sub, i) => (
-                <div key={sub.id} className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: i < manifest.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sub.manifest_status === "green" ? "#008751" : "#c0392b" }} />
-                  <div className="flex-1 min-w-0">
-                    <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.82rem" }}>{sub.profiles?.full_name ?? "Customer"}</p>
-                    <p style={{ color: "#5a6e5c", fontSize: "0.7rem" }} className="truncate">{sub.profiles?.address ?? "No address on file"}</p>
+        {activeTab === "manifest" && (() => {
+          const basicManifest = manifest.filter(s => (s.plan_type ?? "basic") === "basic");
+          const commercialManifest = manifest.filter(s => s.plan_type === "commercial");
+
+          const ManifestSection = ({ title, subtitle, items }: { title: string; subtitle: string; items: typeof manifest }) => (
+            <div className="rounded-2xl overflow-hidden mb-4" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+              <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
+                <p style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontWeight: 700, fontSize: "0.92rem" }}>{title}</p>
+                <p style={{ color: "#5a6e5c", fontSize: "0.72rem", marginTop: "0.1rem" }}>{subtitle}</p>
+              </div>
+              {items.length === 0 ? (
+                <p className="px-5 py-8 text-center" style={{ color: "#5a6e5c", fontSize: "0.85rem" }}>No subscribers on this manifest yet.</p>
+              ) : (
+                items.map((sub, i) => (
+                  <div key={sub.id} className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: i < items.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sub.manifest_status === "green" ? "#008751" : "#c0392b" }} />
+                    <div className="flex-1 min-w-0">
+                      <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.82rem" }}>{sub.profiles?.full_name ?? "Customer"}</p>
+                      <p style={{ color: "#5a6e5c", fontSize: "0.7rem" }} className="truncate">{sub.profiles?.address ?? "No address on file"}</p>
+                    </div>
+                    {sub.trash_ready && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0" style={{ background: "#e8f0e4", color: "#2d5230" }}>READY</span>
+                    )}
+                    {sub.manifest_status === "green" ? (
+                      <button onClick={() => skipHouse(sub)} className="px-2.5 py-1 rounded-lg text-[11px] font-medium flex-shrink-0" style={{ background: "#fff3cd", color: "#856404" }}>
+                        Skip
+                      </button>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold flex-shrink-0" style={{ background: "#fde8e8", color: "#c0392b" }}>BYPASS</span>
+                    )}
                   </div>
-                  {sub.trash_ready && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0" style={{ background: "#e8f0e4", color: "#2d5230" }}>READY</span>
-                  )}
-                  {sub.manifest_status === "green" ? (
-                    <button onClick={() => skipHouse(sub)} className="px-2.5 py-1 rounded-lg text-[11px] font-medium flex-shrink-0" style={{ background: "#fff3cd", color: "#856404" }}>
-                      Skip
-                    </button>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold flex-shrink-0" style={{ background: "#fde8e8", color: "#c0392b" }}>BYPASS</span>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
+                ))
+              )}
+            </div>
+          );
+
+          return (
+            <div>
+              <ManifestSection
+                title="🏠 Basic Plan manifest"
+                subtitle={`${basicManifest.length} on file · Saturday pickups · ${basicManifest.filter(s => s.manifest_status === "red").length} flagged for bypass`}
+                items={basicManifest}
+              />
+              <ManifestSection
+                title="🏢 Commercial Plan manifest"
+                subtitle={`${commercialManifest.length} on file · Wed & Fri pickups · ${commercialManifest.filter(s => s.manifest_status === "red").length} flagged for bypass`}
+                items={commercialManifest}
+              />
+            </div>
+          );
+        })()}
 
         {/* History */}
         {activeTab === "history" && (
@@ -449,7 +467,7 @@ export function AgentPortal() {
           const isActive = activeTab === tab.key;
           return (
             <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-              className="flex flex-col items-center gap-1 py-1.5 px-4 rounded-xl relative transition-all">
+              className="flex flex-col items-center gap-1 py-1.5 px-4 rounded-xl relative transition-colors">
               <div className="relative">
                 <tab.icon className="w-5 h-5" style={{ color: isActive ? "#008751" : "#9ba89a" }} />
                 {tab.count > 0 && (
@@ -468,8 +486,8 @@ export function AgentPortal() {
       {/* Complete pickup modal */}
       {selectedPickup && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
-          style={{ background: "rgba(10,22,11,0.76)" }}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 24px 60px rgba(10,22,11,0.3)" }}>
+          style={{ background: "rgba(10,22,11,0.65)" }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff", boxShadow: "0 8px 24px rgba(10,22,11,0.25)" }}>
             <div className="px-6 py-5" style={{ background: "#1a2e1c" }}>
               <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.65rem", letterSpacing: "0.08em" }}>CONFIRM COLLECTION</p>
               <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem", marginTop: "0.2rem" }}>
@@ -503,7 +521,7 @@ export function AgentPortal() {
                 <button onClick={() => { setSelectedPickup(null); setWeight(""); }}
                   className="flex-1 py-3 rounded-xl text-sm font-medium" style={{ background: "#f0ece4", color: "#5a6e5c" }}>Cancel</button>
                 <button onClick={handleComplete} disabled={completing || !weight}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors hover:opacity-90 disabled:opacity-50"
                   style={{ background: "#008751", color: "#fff" }}>
                   {completing
                     ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />

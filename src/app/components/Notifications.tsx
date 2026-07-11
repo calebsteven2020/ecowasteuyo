@@ -55,7 +55,7 @@ export function Notifications() {
   const unread = notifs.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-dvh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
+    <div className="min-h-svh" style={{ background: "#f7f5f0", fontFamily: "var(--font-body)" }}>
       <div className="max-w-2xl mx-auto px-6 py-10">
         <button onClick={() => navigate("/dashboard")} className="flex items-center gap-1.5 mb-6 opacity-45 hover:opacity-75 transition-opacity" style={{ color: "#1a2e1c", fontSize: "0.78rem" }}>
           <ArrowLeft className="w-3.5 h-3.5" /> Back to dashboard
@@ -71,7 +71,7 @@ export function Notifications() {
             </p>
           </div>
           {unread > 0 && (
-            <button onClick={markAllRead} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all hover:opacity-80" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
+            <button onClick={markAllRead} className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors hover:opacity-80" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
               <CheckCheck className="w-3.5 h-3.5" /> Mark all read
             </button>
           )}
@@ -95,7 +95,7 @@ export function Notifications() {
               const Icon = TYPE_ICON[n.type] ?? Info;
               return (
                 <button key={n.id} onClick={() => !n.read && markOne(n.id)}
-                  className="flex gap-4 p-5 rounded-2xl text-left transition-all hover:shadow-sm"
+                  className="flex gap-4 p-5 rounded-2xl text-left transition-colors hover:shadow-sm"
                   style={{ background: n.read ? "#fff" : "#f0ece4", border: `1px solid ${n.read ? "rgba(26,46,28,0.08)" : "rgba(26,46,28,0.15)"}` }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: TYPE_BG[n.type] }}>
                     <Icon className="w-4 h-4" style={{ color: TYPE_COLOR[n.type] }} />

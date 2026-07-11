@@ -68,16 +68,16 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4"
-      style={{ background: "rgba(10,22,11,0.75)", animation: "fadeInOverlay 0.2s ease" }}>
-      <style>{`@keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } } @keyframes fadeInCard { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }`}</style>
+      style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)", animation: "fadeIn 0.3s ease" }}>
+      <style>{`@keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }`}</style>
 
       <div className="w-full max-w-sm rounded-2xl overflow-hidden"
-        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.35)", animation: "fadeInCard 0.25s ease" }}>
+        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.35)" }}>
 
         {/* Progress bar */}
         <div className="h-1 flex" style={{ background: "#e8f0e4" }}>
           {STEPS.map((_, i) => (
-            <div key={i} className="flex-1 transition-all" style={{ background: i <= step ? "#008751" : "transparent", borderRight: i < STEPS.length - 1 ? "1px solid #e8f0e4" : "none" }} />
+            <div key={i} className="flex-1 transition-colors" style={{ background: i <= step ? "#008751" : "transparent", borderRight: i < STEPS.length - 1 ? "1px solid #e8f0e4" : "none" }} />
           ))}
         </div>
 
@@ -85,7 +85,7 @@ export function OnboardingTour() {
         <div className="px-6 pt-5 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             {STEPS.map((_, i) => (
-              <div key={i} className="rounded-full transition-all"
+              <div key={i} className="rounded-full transition-colors"
                 style={{ width: i === step ? 20 : 6, height: 6, background: i === step ? "#008751" : i < step ? "#85c48a" : "#e8f0e4" }} />
             ))}
           </div>
@@ -111,13 +111,13 @@ export function OnboardingTour() {
           <div className="flex gap-3">
             {step > 0 && (
               <button onClick={() => setStep(s => s - 1)}
-                className="flex-1 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-80"
+                className="flex-1 py-3 rounded-xl text-sm font-medium transition-colors hover:opacity-80"
                 style={{ background: "#f0ece4", color: "#1a2e1c" }}>
                 Back
               </button>
             )}
             <button onClick={next}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-90"
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-colors hover:opacity-90"
               style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
               {step === STEPS.length - 1 ? <>Let's go! 🚀</> : <>Next <ArrowRight className="w-3.5 h-3.5" /></>}
             </button>

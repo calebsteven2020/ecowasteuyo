@@ -13,5 +13,43 @@ button:disabled {
 
 /* Smooth hover transitions on all interactive elements */
 button {
-  transition: opacity 0.15s ease, transform 0.1s ease;
+  transition: opacity 0.15s ease;
+}
+
+/* ── Lite mode ─────────────────────────────────────────────────────
+   Applied when utils/perf/liteMode.ts detects a device whose Chrome/GPU
+   combination can't reliably keep up with rasterizing shadows/rounded
+   clipping during scroll (confirmed: Mali GPU stencil-clip corruption
+   on rounded-corner clipping). Strips the costliest paint operations
+   so the layout stays stable instead of tearing/ghosting, but only for
+   the devices that actually need it — everyone else keeps the normal
+   rounded design. See useLiteMode().
+*/
+.perf-lite .overflow-hidden {
+  overflow: visible !important;
+  border-radius: 0 !important;
+}
+.perf-lite [style*="contain: paint"] {
+  contain: none !important;
+  border-radius: 0 !important;
+}
+.perf-lite [class*="rounded"] {
+  border-radius: 0 !important;
+}
+
+/* ── Lite mode: premium square styling ───────────────────────────────
+   Square corners don't have to look plain. Since these devices can't
+   safely render shadows or rounding, depth/polish comes from a crisp
+   border + a brand-colored accent stripe instead — both cheap, plain
+   rectangular paint operations with no clipping involved. */
+.perf-lite .rounded-2xl.overflow-hidden,
+.perf-lite .flex.flex-col.gap-2.p-4.rounded-2xl {
+  border-color: rgba(26, 46, 28, 0.16) !important;
+  border-left: 3px solid rgba(0, 135, 81, 0.55) !important;
+}
+.perf-lite .p-4 {
+  padding: 1.15rem !important;
+}
+.perf-lite [style*="box-shadow"] {
+  box-shadow: none !important;
 }

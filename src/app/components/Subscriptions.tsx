@@ -212,6 +212,27 @@ export function Subscriptions() {
             type: "success",
           });
 
+          // Referral reward: only fires once, only on this person's FIRST
+          // successful subscription payment (guards against re-triggering
+          // on renewals — a referral row only exists pre-reward once).
+          if (profile?.referred_by) {
+            const { data: referralRow } = await supabase
+              .from("referrals")
+              .select("id, referrer_id")
+              .eq("referred_id", user.id)
+              .eq("status", "pending")
+              .maybeSingle();
+            if (referralRow) {
+              await supabase.from("referrals").update({ status: "rewarded", reward_applied_at: new Date().toISOString() }).eq("id", referralRow.id);
+              await supabase.from("notifications").insert({
+                user_id: referralRow.referrer_id,
+                title: "You earned a referral reward 🎁",
+                message: "Someone you referred just subscribed! ₦500 credit is on its way — contact support to redeem it against your next bill.",
+                type: "success",
+              });
+            }
+          }
+
           setSub(subData as Subscription);
           fetchPayments();
           toast.success(`${plan.label} activated — your house is now GREEN on the driver's manifest.`);

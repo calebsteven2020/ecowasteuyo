@@ -351,6 +351,9 @@ export function PickupHistory() {
                         <div><span style={{ color: "#9ba89a" }}>Address: </span><span style={{ color: "#1a2e1c", fontWeight: 500 }}>{c.address}</span></div>
                         {c.description && <div><span style={{ color: "#9ba89a" }}>Description: </span><span style={{ color: "#1a2e1c" }}>{c.description}</span></div>}
                         <div><span style={{ color: "#9ba89a" }}>Requested: </span><span style={{ color: "#1a2e1c" }}>{new Date(c.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+                        {c.agent_name && (c.status === "dispatched" || c.status === "completed") && (
+                          <div><span style={{ color: "#9ba89a" }}>Agent: </span><span style={{ color: "#008751", fontWeight: 600 }}>👷 {c.agent_name}</span></div>
+                        )}
                         {c.status === "quoted" && c.quote_amount && (
                           <div className="mt-2 pt-2.5 rounded-xl px-3 py-2.5" style={{ background: "#fff8e6", border: "1px solid rgba(245,158,11,0.2)" }}>
                             <p style={{ color: "#92400e", fontSize: "0.7rem", fontWeight: 600 }}>YOUR QUOTE</p>

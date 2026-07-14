@@ -5,7 +5,7 @@ import {
   ArrowRight, Leaf, Recycle, BarChart3, Calendar,
   CheckCircle2, Star, Bell, LayoutDashboard,
   LogOut, User, Trash2, MapPin, TrendingUp, Phone,
-  ArrowUpRight, ChevronRight, Repeat, Home as HomeIcon, Building2, Truck, CreditCard,
+  ArrowUpRight, ChevronRight, Repeat, Home as HomeIcon, Building2, Truck, CreditCard, Smartphone,
 } from "lucide-react";
 
 const HERO_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
@@ -47,7 +47,7 @@ function PublicHome() {
 
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50"
-        style={{ background: "rgba(10,22,11,0.92)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(247,245,240,0.06)" }}>
+        style={{ background: "rgba(10,22,11,0.92)", borderBottom: "1px solid rgba(247,245,240,0.06)" }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 flex items-center justify-between h-14 sm:h-16">
           <a href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#008751" }}>
@@ -142,7 +142,7 @@ function PublicHome() {
         </div>
 
         {/* Floating stats strip */}
-        <div className="absolute bottom-0 left-0 right-0" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="absolute bottom-0 left-0 right-0" style={{ background: "rgba(0,0,0,0.4)", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="max-w-6xl mx-auto px-5 sm:px-8 grid grid-cols-4 divide-x divide-white/10">
             {STATS.map(s => (
               <div key={s.label} className="py-4 px-3 sm:px-6 text-center">
@@ -392,6 +392,50 @@ function PublicHome() {
               style={{ background: "#008751", color: "#fff" }}>
               Create free account <ArrowRight className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* GET THE APP */}
+      <section className="py-20 px-5 sm:px-8" style={{ background: "#f7f5f0" }}>
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10">
+          <div className="max-w-md text-center lg:text-left">
+            <p style={{ color: "#008751", fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.1em" }} className="mb-3">TAKE US WITH YOU</p>
+            <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "clamp(1.6rem,4vw,2.3rem)", fontWeight: 800, letterSpacing: "-0.02em" }}>
+              Get the EcoWaste Uyo app
+            </h2>
+            <p style={{ color: "#5a6e5c", lineHeight: 1.7, fontSize: "0.9rem", marginTop: "0.75rem" }}>
+              Book pickups, track your schedule, and pay — all from your phone. Available on iOS and Android.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* TODO: replace these href values with your real App Store / Play Store listing URLs once published. */}
+            <a
+              href="https://apps.apple.com/app/id0000000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
+              style={{ background: "#1a2e1c" }}
+            >
+              <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
+              <div className="text-left">
+                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Download on the</p>
+                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>App Store</p>
+              </div>
+            </a>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.ecowaste.uyo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
+              style={{ background: "#1a2e1c" }}
+            >
+              <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
+              <div className="text-left">
+                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Get it on</p>
+                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>Google Play</p>
+              </div>
+            </a>
           </div>
         </div>
       </section>

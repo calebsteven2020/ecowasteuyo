@@ -20,11 +20,15 @@ export function Dashboard() {
   const [sub, setSub] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [profileDismissed, setProfileDismissed] = useState(false);
+  const [markingReady, setMarkingReady] = useState(false);
 
   const greeting = (() => {
     const h = new Date().getHours();
     return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
   })();
+
+  const todayName = new Date().toLocaleDateString("en-US", { weekday: "short" }).slice(0, 3);
+  const isDisposalDayToday = !!sub && (sub.plan_type === "basic" ? todayName === "Sat" : todayName === "Wed" || todayName === "Fri");
 
   // Re-check profile on every mount in case user just updated it
   useEffect(() => {
@@ -45,11 +49,34 @@ export function Dashboard() {
       supabase.from("payments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
     ]).then(([{ data: p }, { data: s }, { data: pay }]) => {
       setPickups(p ?? []);
-      setSub(s?.[0] ?? null);
+      const fetchedSub = s?.[0] ?? null;
+      setSub(fetchedSub);
       setPayments(pay ?? []);
       setLoading(false);
+
+      // If trash_ready is still true from a previous disposal day, clear it —
+      // otherwise the "already marked ready" state would incorrectly persist
+      // into next week's pickup day.
+      if (fetchedSub?.trash_ready) {
+        const todayShort = new Date().toLocaleDateString("en-US", { weekday: "short" }).slice(0, 3);
+        const stillDisposalDay = fetchedSub.plan_type === "basic" ? todayShort === "Sat" : todayShort === "Wed" || todayShort === "Fri";
+        if (!stillDisposalDay) {
+          supabase.from("subscriptions").update({ trash_ready: false }).eq("id", fetchedSub.id).then(() => {
+            setSub((prev: any) => prev ? { ...prev, trash_ready: false } : prev);
+          });
+        }
+      }
     });
   }, [user]);
+
+  const handleMarkReady = async () => {
+    if (!sub) return;
+    setMarkingReady(true);
+    const { error } = await supabase.from("subscriptions").update({ trash_ready: true }).eq("id", sub.id);
+    setMarkingReady(false);
+    if (error) return;
+    setSub((prev: any) => prev ? { ...prev, trash_ready: true } : prev);
+  };
 
   const name = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
   const upcoming = pickups.filter(p => p.status === "scheduled");
@@ -200,6 +227,39 @@ export function Dashboard() {
             </div>
             <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "#c0392b" }} />
           </button>
+        )}
+
+        {/* Disposal-day reminder — only shows on the subscriber's actual pickup day */}
+        {sub && sub.status === "active" && sub.manifest_status === "green" && isDisposalDayToday && (
+          sub.trash_ready ? (
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: "#e8f0e4", border: "1px solid rgba(0,135,81,0.2)" }}>
+              <span className="text-base flex-shrink-0">✅</span>
+              <div className="flex-1">
+                <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.78rem" }}>You're all set for today</p>
+                <p style={{ color: "#5a6e5c", fontSize: "0.68rem", marginTop: "0.1rem" }}>The truck knows your bins are out — sit tight.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: "#fff8e6", border: "1px solid rgba(245,158,11,0.25)" }}>
+              <span className="text-base flex-shrink-0">🗑️</span>
+              <div className="flex-1">
+                <p style={{ color: "#92400e", fontWeight: 600, fontSize: "0.78rem" }}>Today is pickup day</p>
+                <p style={{ color: "rgba(146,64,14,0.65)", fontSize: "0.68rem", marginTop: "0.1rem" }}>Place your bins outside by 7 AM</p>
+              </div>
+              <button
+                onClick={handleMarkReady}
+                disabled={markingReady}
+                className="px-3 py-2 rounded-lg text-xs font-semibold flex-shrink-0 transition-colors hover:opacity-90 disabled:opacity-60 flex items-center gap-1.5"
+                style={{ background: "#92400e", color: "#fff8e6" }}
+              >
+                {markingReady ? (
+                  <span className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                ) : (
+                  "Bins are out"
+                )}
+              </button>
+            </div>
+          )
         )}
 
         {/* Primary actions */}

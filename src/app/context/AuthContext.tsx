@@ -9,6 +9,8 @@ export interface Profile {
   avatar_url: string | null;
   is_admin?: boolean;
   is_agent?: boolean;
+  referral_code?: string | null;
+  referred_by?: string | null;
 }
 
 interface AuthContextType {
@@ -34,6 +36,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
     if (data) setProfile(data);
+
+    // If they arrived via a referral link (?ref=CODE, stashed by Login.tsx),
+    // record it now that we know who they actually are. Only once — a
+    // referred person can't be re-attributed to a different referrer.
+    if (data && !data.referred_by) {
+      let refCode: string | null = null;
+      try { refCode = localStorage.getItem("ew_referral_code"); } catch {}
+      if (refCode) {
+        const { error } = await supabase.rpc("record_referral", { p_code: refCode, p_referred_id: userId });
+        if (!error) {
+          try { localStorage.removeItem("ew_referral_code"); } catch {}
+        } else {
+          console.error("[AuthContext] record_referral:", error);
+        }
+      }
+    }
   };
 
   const refreshProfile = async () => {

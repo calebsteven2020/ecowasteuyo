@@ -37,6 +37,55 @@ const PIE_COLORS = ["#008751", "#85c48a", "#2d5230", "#5a6e5c", "#c0392b", "#8b7
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+function BulkCleanoutAgentAssign({ cleanout, agents, onAssigned }: { cleanout: any; agents: { id: string; name: string }[]; onAssigned: (id: string, agent: string, status: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const assign = async (agent: string) => {
+    setSaving(true);
+    const nextStatus = cleanout.status === "paid" ? "dispatched" : cleanout.status;
+    const { error } = await supabase.from("bulk_cleanouts").update({ agent_name: agent, status: nextStatus }).eq("id", cleanout.id);
+    if (!error) {
+      await supabase.from("notifications").insert({
+        user_id: cleanout.user_id,
+        title: "Agent dispatched 🚛",
+        message: `${agent} has been dispatched for your bulk clean-out at ${cleanout.address}.`,
+        type: "info",
+      });
+      onAssigned(cleanout.id, agent, nextStatus);
+    }
+    setSaving(false);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        disabled={saving}
+        className="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors hover:opacity-80 flex items-center gap-1"
+        style={{ background: cleanout.agent_name ? "#e8f0e4" : "#f0ece4", color: "#1a2e1c" }}
+      >
+        {saving ? "…" : cleanout.agent_name ? `👷 ${cleanout.agent_name}` : "Assign agent"}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 z-20 rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.1)", boxShadow: "0 8px 24px rgba(10,22,11,0.18)", minWidth: "160px" }}>
+            {agents.length === 0 ? (
+              <p className="px-3 py-2.5 text-xs" style={{ color: "#5a6e5c" }}>No agents yet.</p>
+            ) : agents.map(a => (
+              <button key={a.id} onClick={() => assign(a.name)} className="w-full text-left px-3 py-2.5 text-xs transition-colors hover:bg-[#f7f5f0]" style={{ color: "#1a2e1c" }}>
+                {a.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function AgentAssign({ pickup, onAssigned }: { pickup: Pickup; onAssigned: (id: string, agent: string) => void }) {
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState(pickup.agent_name ?? "");
@@ -808,7 +857,7 @@ export function AdminDashboard() {
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pickups" | "analytics" | "agents" | "billing">("billing");
+  const [activeTab, setActiveTab] = useState<"route" | "pickups" | "analytics" | "agents" | "billing">("billing");
   const [viewPickup, setViewPickup] = useState<Pickup | null>(null);
   const [subs, setSubs] = useState<any[]>([]);
   const [cleanouts, setCleanouts] = useState<any[]>([]);
@@ -819,9 +868,15 @@ export function AdminDashboard() {
   const [viewReceipt, setViewReceipt] = useState<any | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
   const [urgentPickups, setUrgentPickups] = useState<any[]>([]);
-  const [billingSection, setBillingSection] = useState<"subs"|"payments"|"urgent"|"cleanouts">("subs");
+  const [billingSection, setBillingSection] = useState<"subs"|"payments"|"urgent"|"cleanouts"|"referrals">("subs");
+  const [referrals, setReferrals] = useState<any[]>([]);
   const [billingSearch, setBillingSearch] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<"all"|"success"|"pending"|"rejected">("all");
+  const [cleanoutAgents, setCleanoutAgents] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    supabase.from("agents").select("id, name").order("name").then(({ data }) => setCleanoutAgents(data ?? []));
+  }, []);
 
   const fetchBilling = async () => {
     // Self-healing: flip any subscription whose billing date has passed
@@ -860,6 +915,14 @@ export function AdminDashboard() {
     setCleanouts((cleanoutData ?? []).map(withProfile));
     setPayments((paymentsData ?? []).map(withProfile));
     setUrgentPickups((urgentData ?? []).map(withProfile));
+
+    const { data: referralsData, error: referralsErr } = await supabase
+      .from("referrals")
+      .select("id, status, created_at, reward_applied_at, referrer:profiles!referrer_id(full_name, email), referred:profiles!referred_id(full_name, email)")
+      .order("created_at", { ascending: false });
+    if (referralsErr) console.error("[fetchBilling] referrals:", referralsErr);
+    setReferrals(referralsData ?? []);
+
     setBillingLoading(false);
   };
 
@@ -1035,7 +1098,7 @@ export function AdminDashboard() {
   const handleSignOut = async () => { await signOut(); navigate("/login"); };
 
   const exportCSV = () => {
-    const headers = ["Reference", "User", "Phone", "Waste Type", "Address", "Date", "Time", "Status", "Est. Weight (kg)", "Actual Weight (kg)", "Booked On"];
+    const headers = ["Reference", "User", "Phone", "Waste Type", "Address", "Date", "Time", "Status", "Assigned Agent", "Est. Weight (kg)", "Actual Weight (kg)", "Booked On"];
     const rows = pickups.map(p => [
       p.id.slice(0, 8).toUpperCase(),
       p.profiles?.full_name ?? "Unknown",
@@ -1045,6 +1108,7 @@ export function AdminDashboard() {
       p.pickup_date,
       p.pickup_time,
       p.status,
+      p.agent_name ?? "Unassigned",
       p.estimated_weight ?? "",
       p.actual_weight ?? "",
       new Date(p.created_at).toLocaleDateString("en-NG"),
@@ -1156,6 +1220,7 @@ export function AdminDashboard() {
           {/* Tab nav — scrollable on mobile */}
           <div className="flex gap-0 -mb-px overflow-x-auto scrollbar-hide" style={{ msOverflowStyle: "none", scrollbarWidth: "none" }}>
             {[
+              { key: "route", label: "Today's Route" },
               { key: "billing", label: "Subscriptions" },
               { key: "pickups", label: "Urgent Pickups" },
               { key: "analytics", label: "Analytics" },
@@ -1177,18 +1242,107 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-5 sm:py-6">
 
+        {(() => {
+          // ── Today's Route: everything actually happening today, one list ──
+          const todayLong = new Date().toLocaleDateString("en-US", { weekday: "long" });
+          const isBasicDay = todayLong === "Saturday";
+          const isCommercialDay = todayLong === "Wednesday" || todayLong === "Friday";
+          const todayShort = new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+
+          const activeSubscribers = subs.filter(s => s.status === "active" && s.manifest_status === "green");
+          const routeSubs = isBasicDay
+            ? activeSubscribers.filter(s => s.plan_type === "basic")
+            : isCommercialDay
+              ? activeSubscribers.filter(s => s.plan_type === "commercial")
+              : [];
+          const routeUrgent = urgentPickups.filter(p => p.pickup_date === todayShort && (p.status === "scheduled" || p.status === "in_progress"));
+          const routeCleanouts = cleanouts.filter(c => c.status === "dispatched");
+
+          const routeItems = [
+            ...routeSubs.map(s => ({
+              id: s.id, kind: "sub" as const,
+              name: s.profiles?.full_name ?? "Customer",
+              address: s.profiles?.address ?? "No address on file",
+              phone: s.profiles?.phone ?? null,
+              detail: `${s.plan_type === "basic" ? "Basic" : "Commercial"} Plan pickup`,
+              agent: null as string | null,
+            })),
+            ...routeUrgent.map(p => ({
+              id: p.id, kind: "urgent" as const,
+              name: p.profiles?.full_name ?? "Customer",
+              address: p.address ?? "No address on file",
+              phone: p.profiles?.phone ?? null,
+              detail: `Urgent · ${p.waste_type ?? "General Waste"}${p.pickup_time ? " · " + p.pickup_time : ""}`,
+              agent: p.agent_name ?? null,
+            })),
+            ...routeCleanouts.map(c => ({
+              id: c.id, kind: "cleanout" as const,
+              name: c.profiles?.full_name ?? "Customer",
+              address: c.address ?? "No address on file",
+              phone: c.profiles?.phone ?? null,
+              detail: `Bulk clean-out · ${c.quote_amount ? "₦" + c.quote_amount.toLocaleString("en-NG") : ""}`,
+              agent: c.agent_name ?? null,
+            })),
+          ].sort((a, b) => a.address.localeCompare(b.address));
+
+          const kindMeta: Record<string, { icon: string; label: string; color: string }> = {
+            sub: { icon: "📋", label: "Subscription", color: "#008751" },
+            urgent: { icon: "⚡", label: "Urgent", color: "#c0392b" },
+            cleanout: { icon: "📦", label: "Clean-out", color: "#92400e" },
+          };
+
+        return (<>
         {/* Minimal section header — changes per tab */}
         <div className="mb-6">
           <h1 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "1.25rem", fontWeight: 700 }}>
-            {activeTab === "billing" ? "Subscribers" : activeTab === "pickups" ? "Urgent Pickups" : activeTab === "analytics" ? "Analytics" : "Agents"}
+            {activeTab === "route" ? "Today's Route" : activeTab === "billing" ? "Subscribers" : activeTab === "pickups" ? "Urgent Pickups" : activeTab === "analytics" ? "Analytics" : "Agents"}
           </h1>
           <p style={{ color: "#9ba89a", fontSize: "0.75rem", marginTop: "0.15rem" }}>
-            {activeTab === "billing" ? `${subs.length} subscribers · ${pastDueSubs.length} past due` :
+            {activeTab === "route" ? `${todayLong} · ${routeItems.length} stops (${routeSubs.length} subscription, ${routeUrgent.length} urgent, ${routeCleanouts.length} clean-out)` :
+             activeTab === "billing" ? `${subs.length} subscribers · ${pastDueSubs.length} past due` :
              activeTab === "pickups" ? `${pickups.length} total · ${pickups.filter(p => p.status === "scheduled").length} scheduled` :
              activeTab === "analytics" ? "Platform performance overview" :
              "Manage driver and collector accounts"}
           </p>
         </div>
+
+        {/* TODAY'S ROUTE TAB */}
+        {activeTab === "route" && (
+          <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+            {routeItems.length === 0 ? (
+              <p className="px-5 py-10 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>
+                {isBasicDay || isCommercialDay ? "No stops scheduled for today yet." : "No subscription pickups scheduled today — check Urgent Pickups and Clean-outs tabs for anything else."}
+              </p>
+            ) : routeItems.map((item, i) => {
+              const meta = kindMeta[item.kind];
+              return (
+                <div key={`${item.kind}-${item.id}`} className="flex items-center gap-3 px-5 py-3.5" style={{ borderBottom: i < routeItems.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "#f7f5f0" }}>
+                    <span style={{ fontSize: "0.95rem" }}>{meta.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.82rem" }}>{item.name}</p>
+                      <span style={{ fontSize: "0.62rem", fontWeight: 700, color: meta.color, background: `${meta.color}14`, padding: "1px 7px", borderRadius: "9999px" }}>{meta.label}</span>
+                    </div>
+                    <p style={{ color: "#5a6e5c", fontSize: "0.72rem" }} className="truncate">{item.address}</p>
+                    <p style={{ color: "#9ba89a", fontSize: "0.68rem", marginTop: "0.1rem" }}>{item.detail}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    {item.phone && <p style={{ color: "#5a6e5c", fontSize: "0.7rem" }}>📞 {item.phone}</p>}
+                    {item.agent ? (
+                      <p style={{ color: "#008751", fontSize: "0.7rem", fontWeight: 600, marginTop: "0.15rem" }}>👷 {item.agent}</p>
+                    ) : item.kind !== "sub" ? (
+                      <p style={{ color: "#c0392b", fontSize: "0.68rem", fontWeight: 600, marginTop: "0.15rem" }}>Unassigned</p>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        </>);
+        })()}
 
         {/* PICKUPS TAB */}
         {activeTab === "pickups" && (
@@ -1444,6 +1598,7 @@ export function AdminDashboard() {
                 { key: "payments", label: "Payments", count: payments.length, icon: "💳", color: "#1a2e1c", bg: "#f0ece4" },
                 { key: "urgent", label: "Urgent Pickups", count: urgentPickups.length, icon: "⚡", color: "#c0392b", bg: "#fde8e8" },
                 { key: "cleanouts", label: "Bulk Clean-outs", count: cleanouts.length, icon: "📦", color: "#5a6e5c", bg: "#f0ece4" },
+                { key: "referrals", label: "Referrals", count: referrals.length, icon: "🎁", color: "#008751", bg: "#e8f0e4" },
               ].map(sec => (
                 <button key={sec.key} onClick={() => { setBillingSection(sec.key as any); setBillingSearch(""); setPaymentFilter("all"); }}
                   className="flex flex-col items-start p-4 rounded-2xl text-left transition-colors hover:scale-[0.98]"
@@ -1614,7 +1769,7 @@ export function AdminDashboard() {
                           <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.85rem" }}>{c.profiles?.full_name ?? "Unknown"}</p>
                           <p style={{ color: "#9ba89a", fontSize: "0.72rem" }} className="truncate">{c.description} — {c.address}</p>
                         </div>
-                        <div className="text-right flex-shrink-0">
+                        <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                           {c.status === "pending_quote" ? (
                             quoting?.id === c.id ? (
                               <div className="flex items-center gap-2">
@@ -1642,11 +1797,45 @@ export function AdminDashboard() {
                               );
                             })()
                           )}
+                          {(c.status === "paid" || c.status === "dispatched") && (
+                            <BulkCleanoutAgentAssign
+                              cleanout={c}
+                              agents={cleanoutAgents}
+                              onAssigned={(id, agent, status) => setCleanouts(prev => prev.map(item => item.id === id ? { ...item, agent_name: agent, status } : item))}
+                            />
+                          )}
                         </div>
                       </div>
                     ))
                   );
                 })()}
+              </div>
+            )}
+
+            {/* ── Referrals ── */}
+            {billingSection === "referrals" && (
+              <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
+                  <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700 }}>🎁 Referrals</h2>
+                  <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "0.2rem" }}>
+                    {referrals.filter(r => r.status === "rewarded").length} rewarded · {referrals.filter(r => r.status === "pending").length} pending (referred but not yet subscribed)
+                  </p>
+                </div>
+                {referrals.length === 0 ? (
+                  <p className="px-5 py-8 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>No referrals yet.</p>
+                ) : referrals.map((r, i) => (
+                  <div key={r.id} className="flex items-center gap-4 px-5 py-3.5" style={{ borderBottom: i < referrals.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
+                    <div className="flex-1 min-w-0">
+                      <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.82rem" }}>
+                        {r.referrer?.full_name ?? "Unknown"} <span style={{ color: "#9ba89a", fontWeight: 400 }}>referred</span> {r.referred?.full_name ?? "Unknown"}
+                      </p>
+                      <p style={{ color: "#9ba89a", fontSize: "0.7rem" }}>{new Date(r.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</p>
+                    </div>
+                    <span style={{ padding: "2px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, background: r.status === "rewarded" ? "#d4e8d5" : "#fff8e6", color: r.status === "rewarded" ? "#1a2e1c" : "#92400e" }}>
+                      {r.status === "rewarded" ? "₦500 owed to referrer" : "Pending first payment"}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
 

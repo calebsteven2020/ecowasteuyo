@@ -4,9 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase/client";
 import { useLiteMode } from "../hooks/useLiteMode";
+import { initAuthDeepLinkHandler } from "../../../utils/auth/authDeepLink";
 
 export function Root() {
   const location = useLocation();
+  const navigate = useNavigate();
   const hideHeader = location.pathname === "/login" || location.pathname === "/" || location.pathname.startsWith("/admin");
   // On devices where we detect a GPU rasterization problem (see
   // utils/perf/liteMode.ts), `perf-lite` is added to the root element.
@@ -14,6 +16,15 @@ export function Root() {
   // JS-level branching (e.g. skipping a heavy background image), and
   // index.css has some blanket CSS-level fallbacks keyed off this class.
   const liteMode = useLiteMode();
+
+  // Native app only: catches the email-confirmation link (ecowasteuyo://
+  // auth-callback...) and finishes signing the person in automatically,
+  // instead of leaving them on the confirmation email / website.
+  useEffect(() => {
+    const cleanup = initAuthDeepLinkHandler(() => navigate("/dashboard"));
+    return cleanup;
+  }, [navigate]);
+
   return (
     <div className={`min-h-svh bg-background${liteMode ? " perf-lite" : ""}`}>
       {!hideHeader && <Header />}

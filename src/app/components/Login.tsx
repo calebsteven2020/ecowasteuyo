@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Leaf, Eye, EyeOff, ArrowLeft, ArrowRight, KeyRound } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
+import { isNativeApp } from "../../../utils/perf/liteMode";
 
 const FOREST_IMG = "https://images.unsplash.com/photo-1707008797390-38f13ea40163?w=900&h=1200&fit=crop&auto=format";
 
@@ -78,6 +79,18 @@ export function Login() {
     }
   }, []);
 
+  // Stash a referral code from ?ref=CODE for AuthContext to record once the
+  // person is actually authenticated (works whether they sign up with an
+  // immediate session, or have to confirm their email and log in later).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      try { localStorage.setItem("ew_referral_code", ref.trim()); } catch {}
+      setIsSignup(true); // someone arriving via a referral link is a new customer
+    }
+  }, []);
+
   // Validate email more strictly — must have real TLD (.com, .ng, etc.)
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email.trim());
@@ -105,7 +118,9 @@ export function Login() {
           password: formData.password,
           options: {
             data: { full_name: formData.name.trim() },
-            emailRedirectTo: `${window.location.origin}/login?confirmed=1`,
+            emailRedirectTo: isNativeApp()
+              ? "ecowasteuyo://auth-callback"
+              : `${window.location.origin}/login?confirmed=1`,
           },
         });
 

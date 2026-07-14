@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, User, Upload, Save, Phone, MapPin, Mail, Leaf } from "lucide-react";
+import { ArrowLeft, User, Upload, Save, Phone, MapPin, Mail, Leaf, Gift, Copy, Check } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
@@ -12,6 +12,28 @@ export function Profile() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url ?? null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(profile?.referral_code ?? null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    if (profile?.referral_code) { setReferralCode(profile.referral_code); return; }
+    supabase.rpc("ensure_referral_code", { p_user_id: user.id }).then(({ data, error }) => {
+      if (error) { console.error("[Profile] ensure_referral_code:", error); return; }
+      if (data) { setReferralCode(data as string); refreshProfile(); }
+    });
+  }, [user, profile?.referral_code]);
+
+  const copyReferralLink = () => {
+    if (!referralCode) return;
+    const link = `${window.location.origin}/login?ref=${referralCode}`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopied(true);
+      toast.success("Referral link copied!");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   // Use signup name as fallback if profile name not yet set
   const signupName = user?.user_metadata?.full_name ?? "";
   const [form, setForm] = useState({
@@ -116,6 +138,30 @@ export function Profile() {
             <label style={lbl}><MapPin className="w-3 h-3 inline mr-1.5" style={{color:"#008751"}} />DEFAULT PICKUP ADDRESS</label>
             <textarea rows={2} value={form.address} onChange={e => set("address", e.target.value)} placeholder="12 Adeola Odeku Street, Victoria Island, Lagos" style={{ ...inp, resize: "none" }} onFocus={focus} onBlur={blur} />
           </div>
+        </div>
+
+        {/* Refer a friend */}
+        <div className="rounded-2xl p-5 mb-5" style={{ background: "#1a2e1c" }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <Gift className="w-4 h-4" style={{ color: "#85c48a" }} />
+            <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.85rem" }}>Refer a neighbor, get ₦500 off</p>
+          </div>
+          <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.75rem", marginBottom: "0.9rem" }}>
+            Share your link. When they subscribe and pay, you both get credited.
+          </p>
+          {referralCode ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 px-3 py-2.5 rounded-xl truncate" style={{ background: "rgba(247,245,240,0.1)", color: "#f7f5f0", fontSize: "0.78rem", fontFamily: "monospace" }}>
+                {referralCode}
+              </div>
+              <button onClick={copyReferralLink} className="px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 flex-shrink-0 transition-colors hover:opacity-90" style={{ background: "#008751", color: "#fff" }}>
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{copied ? "Copied" : "Copy link"}</span>
+              </button>
+            </div>
+          ) : (
+            <p style={{ color: "rgba(247,245,240,0.5)", fontSize: "0.75rem" }}>Generating your link…</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-3">

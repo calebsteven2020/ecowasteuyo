@@ -158,7 +158,7 @@ export function Login() {
           } else if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many")) {
             toast.error("Too many failed attempts. Please wait a few minutes.");
           } else if (msg.toLowerCase().includes("email not confirmed")) {
-            toast.error("Please confirm your email first. Check your inbox for the confirmation link.");
+            toast.error("Please confirm your email first. Check your inbox/spam for the confirmation link.");
           } else {
             toast.error(msg || "Sign in failed. Please try again.");
           }

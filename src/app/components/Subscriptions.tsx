@@ -65,6 +65,7 @@ export function Subscriptions() {
   const [subscribing, setSubscribing] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [showReceiptUpload, setShowReceiptUpload] = useState(false);
+  const [preTransferSub, setPreTransferSub] = useState<Subscription | null | undefined>(undefined);
   const [payments, setPayments] = useState<any[]>([]);
 
   const fetchSub = async () => {
@@ -250,6 +251,7 @@ export function Subscriptions() {
   // ── Option B: manual bank transfer — create a pending subscription, then collect a receipt ──
   const handleBankTransferSubscribe = async () => {
     if (!user) return;
+    setPreTransferSub(sub); // snapshot what existed before this attempt, for cancel to restore
     setSubscribing(true);
     const { data: subData, error } = await upsertSubscription("pending", "red", "bank_transfer");
     if (error || !subData) {
@@ -262,6 +264,35 @@ export function Subscriptions() {
     setSubscribing(false);
     setShowReceiptUpload(true);
     toast("Now upload your transfer receipt so we can confirm payment.", { icon: "🧾" });
+  };
+
+  // Cancels an in-progress bank-transfer attempt that hasn't had a receipt
+  // uploaded yet — either deletes the just-created "pending" row (brand new
+  // subscriber) or restores whatever the subscription looked like before
+  // this attempt (existing subscriber renewing), instead of leaving a
+  // dangling "pending / red" record with no receipt behind it.
+  const cancelBankTransferAttempt = async () => {
+    if (!sub) { setShowReceiptUpload(false); return; }
+
+    if (preTransferSub === null || preTransferSub === undefined) {
+      // No subscription existed before this attempt — it's safe to delete outright.
+      const { error } = await supabase.from("subscriptions").delete().eq("id", sub.id);
+      if (error) console.error("[cancelBankTransferAttempt] delete failed:", error);
+      setSub(null);
+    } else {
+      // Restore the subscription to whatever state it was in before this attempt.
+      const { error } = await supabase.from("subscriptions").update({
+        status: preTransferSub.status,
+        manifest_status: preTransferSub.manifest_status,
+        payment_method: preTransferSub.payment_method,
+      }).eq("id", sub.id);
+      if (error) console.error("[cancelBankTransferAttempt] restore failed:", error);
+      setSub(preTransferSub);
+    }
+
+    setPreTransferSub(undefined);
+    setShowReceiptUpload(false);
+    toast("Bank transfer cancelled.", { icon: "↩️" });
   };
 
   const handleSubscribe = () => {
@@ -526,8 +557,8 @@ export function Subscriptions() {
       {showReceiptUpload && sub && (
         <ReceiptUploadModal
           sub={sub}
-          onClose={() => setShowReceiptUpload(false)}
-          onSubmitted={() => { fetchPayments(); setShowReceiptUpload(false); }}
+          onCancel={cancelBankTransferAttempt}
+          onSubmitted={() => { fetchPayments(); setShowReceiptUpload(false); setPreTransferSub(undefined); }}
         />
       )}
     </div>
@@ -535,12 +566,25 @@ export function Subscriptions() {
 }
 
 // ── Receipt Upload modal (bank transfer proof-of-payment) ──
-function ReceiptUploadModal({ sub, onClose, onSubmitted }: { sub: Subscription; onClose: () => void; onSubmitted: () => void }) {
+function ReceiptUploadModal({ sub, onCancel, onSubmitted }: { sub: Subscription; onCancel: () => void; onSubmitted: () => void }) {
   const { user } = useAuth();
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [reference, setReference] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const resetUpload = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setReference("");
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    await onCancel();
+    setCancelling(false);
+  };
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -592,7 +636,7 @@ function ReceiptUploadModal({ sub, onClose, onSubmitted }: { sub: Subscription; 
       <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#fff" }}>
         <div className="px-6 py-5 flex items-center justify-between" style={{ background: "#1a2e1c" }}>
           <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 700, fontSize: "1rem" }}>Upload Transfer Receipt</p>
-          <button onClick={onClose}><X className="w-4 h-4" style={{ color: "rgba(247,245,240,0.6)" }} /></button>
+          <button onClick={handleCancel} disabled={cancelling}><X className="w-4 h-4" style={{ color: "rgba(247,245,240,0.6)" }} /></button>
         </div>
         <div className="p-6 flex flex-col gap-4">
           <div className="rounded-xl p-4" style={{ background: "#e8f0e4" }}>
@@ -620,7 +664,7 @@ function ReceiptUploadModal({ sub, onClose, onSubmitted }: { sub: Subscription; 
             {photoPreview ? (
               <div className="relative w-full h-36 rounded-xl overflow-hidden mt-1.5">
                 <img src={photoPreview} alt="receipt preview" className="w-full h-full object-cover" />
-                <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); }} className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
+                <button onClick={() => { resetUpload(); }} className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)" }}>
                   <X className="w-3.5 h-3.5 text-white" />
                 </button>
               </div>
@@ -638,8 +682,11 @@ function ReceiptUploadModal({ sub, onClose, onSubmitted }: { sub: Subscription; 
             <input value={reference} onChange={e => setReference(e.target.value)} placeholder="e.g. bank session ID" className="w-full mt-1 px-3 py-2.5 rounded-xl text-sm" style={{ background: "#f0ece4", border: "none", outline: "none" }} />
           </div>
 
-          <button onClick={submit} disabled={submitting} className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: "#008751", color: "#fff" }}>
+          <button onClick={submit} disabled={submitting || cancelling} className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: "#008751", color: "#fff" }}>
             {submitting ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : "Submit for verification"}
+          </button>
+          <button onClick={handleCancel} disabled={submitting || cancelling} className="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60 transition-colors hover:opacity-80" style={{ background: "#f0ece4", color: "#5a6e5c" }}>
+            {cancelling ? <span className="w-4 h-4 rounded-full border-2 border-[#5a6e5c]/30 border-t-[#5a6e5c] animate-spin" /> : "Cancel — I haven't paid yet"}
           </button>
           <p style={{ color: "#5a6e5c", fontSize: "0.7rem", textAlign: "center" }}>An admin will confirm your payment shortly.</p>
         </div>

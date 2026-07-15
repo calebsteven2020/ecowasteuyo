@@ -6,7 +6,7 @@ export const KORAPAY_PUBLIC_KEY = "pk_live_EkaXCXDEchCvNxgXz1sqqoQ4ri4L73ccz4HZ6
 // Bank account details shown to customers who choose manual bank transfer.
 // Update these to your agency's real dedicated/settlement account.
 export const BANK_TRANSFER_DETAILS = {
-  bankName: "Providus Bank",
-  accountName: "EcoWaste Uyo Ltd",
-  accountNumber: "0000000000",
+  bankName: "Zenith Bank",
+  accountName: "Caleb Francis",
+  accountNumber: "2361105176",
 };

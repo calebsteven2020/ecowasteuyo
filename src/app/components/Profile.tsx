@@ -64,7 +64,7 @@ export function Profile() {
           avatarUrl = publicUrl;
         }
       }
-      const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form, avatar_url: avatarUrl });
+      const { error } = await supabase.from("profiles").upsert({ id: user.id, ...form, email: user.email, avatar_url: avatarUrl });
       if (error) { toast.error(error.message); return; }
       await refreshProfile();
       toast.success("Profile updated!");

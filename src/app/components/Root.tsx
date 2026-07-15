@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabase/client";
 import { useLiteMode } from "../hooks/useLiteMode";
 import { initAuthDeepLinkHandler } from "../../../utils/auth/authDeepLink";
+import { MobileAppBanner } from "./MobileAppBanner";
 
 export function Root() {
   const location = useLocation();
   const navigate = useNavigate();
   const hideHeader = location.pathname === "/login" || location.pathname === "/" || location.pathname.startsWith("/admin");
+  const isAdmin = location.pathname.startsWith("/admin");
   // On devices where we detect a GPU rasterization problem (see
   // utils/perf/liteMode.ts), `perf-lite` is added to the root element.
   // Individual pages/components can read useLiteMode() themselves for
@@ -29,6 +31,7 @@ export function Root() {
     <div className={`min-h-svh bg-background${liteMode ? " perf-lite" : ""}`}>
       {!hideHeader && <Header />}
       <main><Outlet /></main>
+      {!isAdmin && <MobileAppBanner />}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import { useAuth } from "../context/AuthContext";
+import { APK_DOWNLOAD_URL } from "../constants";
 import {
   ArrowRight, Leaf, Recycle, BarChart3, Calendar,
   CheckCircle2, Star, Bell, LayoutDashboard,
@@ -11,12 +13,6 @@ import {
 const HERO_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
 const CITY_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/Uyo,%20Akwa%20Ibom%20State_.jpg";
 const AERIAL_IMG = "https://images.unsplash.com/photo-1707008797390-38f13ea40163?w=700&h=900&fit=crop&auto=format";
-// No Play Store listing yet — this links straight to the signed release APK.
-// Same project as HERO_IMG/CITY_IMG above, just a separate public bucket
-// (e.g. "downloads") so the storage dashboard stays tidy. Upload the signed
-// app-release.apk there (Supabase dashboard → Storage → New bucket → toggle
-// "Public bucket" on → upload the file) and this URL just works.
-const APK_DOWNLOAD_URL = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/downloads/ecowaste-uyo.apk";
 
 const STATS = [
   { value: "5,000+", label: "Nigerians served" },
@@ -402,7 +398,14 @@ function PublicHome() {
         </div>
       </section>
 
-      {/* GET THE APP */}
+      {/* GET THE APP — only on the website. Capacitor.isNativePlatform() is
+          true when this same code is running inside the wrapped Android/iOS
+          app itself, where it'd be pointless (and a little odd) to prompt
+          someone to download the app they're already using. Keeping this as
+          a runtime check on one Home.tsx, rather than a separate app-only
+          copy of the page, means the two can never drift out of sync — any
+          other change you make here automatically applies to both. */}
+      {!Capacitor.isNativePlatform() && (
       <section className="py-20 px-5 sm:px-8" style={{ background: "#f7f5f0" }}>
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10">
           <div className="max-w-md text-center lg:text-left">
@@ -447,6 +450,19 @@ function PublicHome() {
               install on real devices.
             */}
             <a
+              href="https://apps.apple.com/app/id0000000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
+              style={{ background: "#1a2e1c" }}
+            >
+              <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
+              <div className="text-left">
+                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Download on the</p>
+                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>App Store</p>
+              </div>
+            </a>
+            <a
               href={APK_DOWNLOAD_URL}
               download="ecowaste-uyo.apk"
               className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
@@ -461,6 +477,7 @@ function PublicHome() {
           </div>
         </div>
       </section>
+      )}
 
       {/* FOOTER */}
       <footer style={{ background: "#0f1f10", borderTop: "1px solid rgba(247,245,240,0.05)" }} className="px-5 sm:px-8 py-10">

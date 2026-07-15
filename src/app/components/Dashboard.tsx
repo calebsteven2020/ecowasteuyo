@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { Zap, Recycle, Clock, ChevronRight, Leaf, LogOut, X } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
 import { useAuth } from "../context/AuthContext";
+import { OnboardingTour } from "./OnboardingTour";
 
 interface Pickup {
   id: string; waste_type: string; address: string;
@@ -95,6 +96,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-svh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>
+      <OnboardingTour />
 
       {/* ── Header with hero image ─────────────────────── */}
       {/*

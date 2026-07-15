@@ -544,14 +544,14 @@ function LoggedInHome() {
           ))}
         </div>
 
-        {/* Impact promo */}
+        {/* Subscription promo */}
         <div className="mt-8 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5" style={{ background: "#1a2e1c" }}>
           <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#008751" }}>
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <p style={{ color: "#f7f5f0", fontWeight: 600, fontSize: "0.9rem" }}>Track your environmental impact</p>
-            <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.78rem", marginTop: "0.2rem" }}>See your CO₂ saved, trees protected, and water conserved across all pickups.</p>
+            <p style={{ color: "#f7f5f0", fontWeight: 600, fontSize: "0.9rem" }}>Never miss a pickup again</p>
+            <p style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.78rem", marginTop: "0.2rem" }}>Subscribe once and your bins get collected on schedule, every week — no more chasing a truck down.</p>
           </div>
           <button onClick={() => navigate("/dashboard")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0 hover:opacity-90 transition-colors"

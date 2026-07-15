@@ -79,18 +79,6 @@ export function Login() {
     }
   }, []);
 
-  // Stash a referral code from ?ref=CODE for AuthContext to record once the
-  // person is actually authenticated (works whether they sign up with an
-  // immediate session, or have to confirm their email and log in later).
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get("ref");
-    if (ref) {
-      try { localStorage.setItem("ew_referral_code", ref.trim()); } catch {}
-      setIsSignup(true); // someone arriving via a referral link is a new customer
-    }
-  }, []);
-
   // Validate email more strictly — must have real TLD (.com, .ng, etc.)
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email.trim());

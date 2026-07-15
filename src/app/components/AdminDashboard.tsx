@@ -868,8 +868,7 @@ export function AdminDashboard() {
   const [viewReceipt, setViewReceipt] = useState<any | null>(null);
   const [billingLoading, setBillingLoading] = useState(true);
   const [urgentPickups, setUrgentPickups] = useState<any[]>([]);
-  const [billingSection, setBillingSection] = useState<"subs"|"payments"|"urgent"|"cleanouts"|"referrals">("subs");
-  const [referrals, setReferrals] = useState<any[]>([]);
+  const [billingSection, setBillingSection] = useState<"subs"|"payments"|"urgent"|"cleanouts">("subs");
   const [billingSearch, setBillingSearch] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<"all"|"success"|"pending"|"rejected">("all");
   const [cleanoutAgents, setCleanoutAgents] = useState<{ id: string; name: string }[]>([]);
@@ -915,13 +914,6 @@ export function AdminDashboard() {
     setCleanouts((cleanoutData ?? []).map(withProfile));
     setPayments((paymentsData ?? []).map(withProfile));
     setUrgentPickups((urgentData ?? []).map(withProfile));
-
-    const { data: referralsData, error: referralsErr } = await supabase
-      .from("referrals")
-      .select("id, status, created_at, reward_applied_at, referrer:profiles!referrer_id(full_name, email), referred:profiles!referred_id(full_name, email)")
-      .order("created_at", { ascending: false });
-    if (referralsErr) console.error("[fetchBilling] referrals:", referralsErr);
-    setReferrals(referralsData ?? []);
 
     setBillingLoading(false);
   };
@@ -1598,7 +1590,6 @@ export function AdminDashboard() {
                 { key: "payments", label: "Payments", count: payments.length, icon: "💳", color: "#1a2e1c", bg: "#f0ece4" },
                 { key: "urgent", label: "Urgent Pickups", count: urgentPickups.length, icon: "⚡", color: "#c0392b", bg: "#fde8e8" },
                 { key: "cleanouts", label: "Bulk Clean-outs", count: cleanouts.length, icon: "📦", color: "#5a6e5c", bg: "#f0ece4" },
-                { key: "referrals", label: "Referrals", count: referrals.length, icon: "🎁", color: "#008751", bg: "#e8f0e4" },
               ].map(sec => (
                 <button key={sec.key} onClick={() => { setBillingSection(sec.key as any); setBillingSearch(""); setPaymentFilter("all"); }}
                   className="flex flex-col items-start p-4 rounded-2xl text-left transition-colors hover:scale-[0.98]"
@@ -1809,33 +1800,6 @@ export function AdminDashboard() {
                     ))
                   );
                 })()}
-              </div>
-            )}
-
-            {/* ── Referrals ── */}
-            {billingSection === "referrals" && (
-              <div className="rounded-2xl overflow-hidden" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
-                <div className="px-5 py-4" style={{ borderBottom: "1px solid rgba(26,46,28,0.07)" }}>
-                  <h2 style={{ fontFamily: "var(--font-display)", color: "#1a2e1c", fontSize: "0.95rem", fontWeight: 700 }}>🎁 Referrals</h2>
-                  <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "0.2rem" }}>
-                    {referrals.filter(r => r.status === "rewarded").length} rewarded · {referrals.filter(r => r.status === "pending").length} pending (referred but not yet subscribed)
-                  </p>
-                </div>
-                {referrals.length === 0 ? (
-                  <p className="px-5 py-8 text-center" style={{ color: "#9ba89a", fontSize: "0.85rem" }}>No referrals yet.</p>
-                ) : referrals.map((r, i) => (
-                  <div key={r.id} className="flex items-center gap-4 px-5 py-3.5" style={{ borderBottom: i < referrals.length - 1 ? "1px solid rgba(26,46,28,0.06)" : "none" }}>
-                    <div className="flex-1 min-w-0">
-                      <p style={{ color: "#1a2e1c", fontWeight: 500, fontSize: "0.82rem" }}>
-                        {r.referrer?.full_name ?? "Unknown"} <span style={{ color: "#9ba89a", fontWeight: 400 }}>referred</span> {r.referred?.full_name ?? "Unknown"}
-                      </p>
-                      <p style={{ color: "#9ba89a", fontSize: "0.7rem" }}>{new Date(r.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</p>
-                    </div>
-                    <span style={{ padding: "2px 10px", borderRadius: "9999px", fontSize: "0.7rem", fontWeight: 600, background: r.status === "rewarded" ? "#d4e8d5" : "#fff8e6", color: r.status === "rewarded" ? "#1a2e1c" : "#92400e" }}>
-                      {r.status === "rewarded" ? "₦500 owed to referrer" : "Pending first payment"}
-                    </span>
-                  </div>
-                ))}
               </div>
             )}
 

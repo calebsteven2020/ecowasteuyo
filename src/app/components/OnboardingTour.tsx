@@ -13,43 +13,53 @@ const STEPS = [
   },
   {
     icon: Calendar,
-    emoji: "📅",
-    title: "Book a pickup",
-    description: "Go to Book a Pickup, choose your waste type, address, date, and time slot. Our verified agents arrive within your window.",
+    emoji: "📋",
+    title: "Choose your plan",
+    description: "Subscribe to the Basic Plan (weekly residential pickup) or Commercial Plan (twice-weekly, for shops and offices). Pay by card, bank/USSD, or bank transfer — your pickups start right after payment.",
     bg: "#e8f0e4",
     ic: "#008751",
   },
   {
     icon: CheckCircle,
-    emoji: "🚛",
-    title: "Track your collection",
-    description: "Head to Pickup History to track your scheduled collections in real time — from Scheduled → In Progress → Completed.",
+    emoji: "🗑️",
+    title: "We'll remind you on pickup day",
+    description: "On your scheduled collection day, your Dashboard will remind you to place your bins outside — just tap \"Bins are out\" so your agent knows your house is ready.",
     bg: "#e8f0e4",
     ic: "#008751",
   },
   {
     icon: BarChart3,
-    emoji: "📊",
-    title: "See your impact",
-    description: "Every completed pickup generates an impact certificate showing your CO₂ saved, trees protected, and water conserved. Check your Dashboard.",
+    emoji: "⚡",
+    title: "Need something extra?",
+    description: "Outside your regular schedule, you can book an Urgent Pickup (flat-rate, dispatched fast) or request a one-time Bulk Clean-out — no subscription required for either.",
     bg: "#e8f0e4",
     ic: "#008751",
   },
 ];
 
 export function OnboardingTour() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
     if (!user) return;
     const key = `onboarding_done_${user.id}`;
-    if (!localStorage.getItem(key)) {
-      // Small delay so it doesn't flash immediately on mount
-      const t = setTimeout(() => setVisible(true), 800);
-      return () => clearTimeout(t);
+    if (localStorage.getItem(key)) return;
+
+    // Only genuinely new accounts should see this — without an age check,
+    // every existing user would see it once too, since this flag was never
+    // set for anyone before the tour was actually wired up to display.
+    const createdAt = user.created_at ? new Date(user.created_at).getTime() : null;
+    const isNewAccount = createdAt !== null && Date.now() - createdAt < 15 * 60 * 1000; // 15 minutes
+    if (!isNewAccount) {
+      localStorage.setItem(key, "1"); // treat as already onboarded, don't ask again
+      return;
     }
+
+    // Small delay so it doesn't flash immediately on mount
+    const t = setTimeout(() => setVisible(true), 800);
+    return () => clearTimeout(t);
   }, [user]);
 
   const dismiss = () => {
@@ -68,11 +78,11 @@ export function OnboardingTour() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center px-4"
-      style={{ background: "rgba(10,22,11,0.65)", backdropFilter: "blur(6px)", animation: "fadeIn 0.3s ease" }}>
+      style={{ background: "rgba(10,22,11,0.65)", animation: "fadeIn 0.3s ease" }}>
       <style>{`@keyframes fadeIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }`}</style>
 
       <div className="w-full max-w-sm rounded-2xl overflow-hidden"
-        style={{ background: "#fff", boxShadow: "0 32px 80px rgba(10,22,11,0.35)" }}>
+        style={{ background: "#fff", boxShadow: "0 8px 24px rgba(10,22,11,0.3)" }}>
 
         {/* Progress bar */}
         <div className="h-1 flex" style={{ background: "#e8f0e4" }}>

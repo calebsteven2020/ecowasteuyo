@@ -79,7 +79,12 @@ export function Dashboard() {
     setSub((prev: any) => prev ? { ...prev, trash_ready: true } : prev);
   };
 
-  const name = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
+  const name = profile?.full_name?.split(" ")[0] || user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
+  // A bank_transfer payment row only exists once a receipt has actually been
+  // uploaded (see Subscriptions.tsx) — sub.status flips to "pending" as soon
+  // as bank transfer is chosen, before that, so it alone can't be used to
+  // decide whether a receipt was submitted.
+  const hasPendingReceipt = !!sub && payments.some(p => p.subscription_id === sub.id && p.channel === "bank_transfer" && p.status === "pending");
   const upcoming = pickups.filter(p => p.status === "scheduled");
   const totalCollections = pickups.filter(p => p.status === "completed").length;
   const urgentCount = pickups.filter(p => p.source === "urgent").length;
@@ -297,7 +302,7 @@ export function Dashboard() {
               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#f0ece4" }}>
                 <item.icon className="w-4 h-4" style={{ color: "#5a6e5c" }} />
               </div>
-              <div className="flex-1 text-left">
+                <div className="flex-1 text-left">
                 <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.8rem" }}>{item.label}</p>
                 <p style={{ color: "#5a6e5c", fontSize: "0.67rem" }}>{item.sub}</p>
               </div>
@@ -374,16 +379,25 @@ export function Dashboard() {
                 <Leaf className="w-5 h-5" style={{ color: "#008751" }} />
               </div>
               <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.82rem" }}>
-                {sub && sub.status === "pending" ? "Awaiting payment confirmation" : "No active subscription"}
+                {sub && sub.status === "pending"
+                  ? (hasPendingReceipt ? "Awaiting payment confirmation" : "Receipt not submitted yet")
+                  : "No active subscription"}
               </p>
               <p style={{ color: "#9ba89a", fontSize: "0.72rem", marginTop: "0.25rem", lineHeight: 1.5 }}>
                 {sub && sub.status === "pending"
-                  ? "Your schedule will appear here once your transfer is verified."
+                  ? (hasPendingReceipt
+                      ? "Your schedule will appear here once your transfer is verified."
+                      : "Upload your transfer receipt to start the verification process.")
                   : "Subscribe to see your weekly collection schedule here."}
               </p>
               {!sub && (
                 <button onClick={() => navigate("/subscriptions")} className="mt-3 px-4 py-2 rounded-full text-xs font-medium" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
                   Subscribe now
+                </button>
+              )}
+              {sub && sub.status === "pending" && !hasPendingReceipt && (
+                <button onClick={() => navigate("/subscriptions")} className="mt-3 px-4 py-2 rounded-full text-xs font-medium" style={{ background: "#008751", color: "#fff", cursor: "pointer" }}>
+                  Upload receipt
                 </button>
               )}
             </div>

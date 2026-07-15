@@ -251,7 +251,7 @@ export function Login() {
             — EcoWaste Uyo, est. 2026
           </p>
           <div className="flex gap-8 mt-10">
-            {[{ v: "5000+", l: "Users served" }, { v: "850 t", l: "Waste collected" }, { v: "`1", l: "Nigerian city" }].map(s => (
+            {[{ v: "5000+", l: "Users served" }, { v: "850 t", l: "Waste collected" }, { v: "1", l: "Nigerian city" }].map(s => (
               <div key={s.l}>
                 <div style={{ fontFamily: "var(--font-display)", color: "#85c48a", fontWeight: 700, fontSize: "1.4rem" }}>{s.v}</div>
                 <div style={{ color: "rgba(247,245,240,0.45)", fontSize: "0.72rem" }}>{s.l}</div>

@@ -169,7 +169,7 @@ export function Contact() {
                 Updates, tips, and real pickup stories in Uyo.
               </p>
               <div className="flex gap-3 flex-wrap">
-                {["Twitter / X", "Instagram", "WhatsApp", "LinkedIn"].map(s => (
+                {["Twitter / X", "Instagram", "WhatsApp"].map(s => (
                   <span key={s} className="px-3 py-1.5 rounded-full text-xs font-medium"
                     style={{ background: "rgba(133,196,138,0.15)", color: "#85c48a", border: "1px solid rgba(133,196,138,0.2)" }}>
                     {s}

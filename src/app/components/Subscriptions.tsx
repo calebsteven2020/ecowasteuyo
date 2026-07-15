@@ -324,6 +324,14 @@ export function Subscriptions() {
     });
   };
 
+  // A "payments" row with channel bank_transfer only ever gets created when the
+  // receipt upload actually succeeds (see ReceiptUploadModal.submit below) — so
+  // its presence, not sub.status alone, is the real signal that a receipt was
+  // submitted. sub.status flips to "pending" the moment bank transfer is chosen,
+  // before any receipt exists, so relying on status alone showed "awaiting
+  // verification" too early.
+  const hasPendingReceipt = !!sub && payments.some(p => p.subscription_id === sub.id && p.channel === "bank_transfer" && p.status === "pending");
+
   if (loading) return (
     <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
@@ -363,14 +371,18 @@ export function Subscriptions() {
                     color: sub.manifest_status === "green" ? "#85c48a" : sub.status === "pending" ? "#f59e0b" : "#e57373",
                     fontSize: "0.75rem", fontWeight: 600
                   }}>
-                    {sub.manifest_status === "green" ? "Active" : sub.status === "pending" ? "Awaiting verification" : "Payment overdue"}
+                    {sub.manifest_status === "green"
+                      ? "Active"
+                      : sub.status === "pending"
+                        ? (hasPendingReceipt ? "Awaiting verification" : "Receipt required")
+                        : "Payment overdue"}
                   </span>
                 </div>
               </div>
 
               <div className="p-6 flex flex-col gap-5">
                 {/* Pending bank transfer — receipt uploaded, waiting for admin */}
-                {sub.status === "pending" && (
+                {sub.status === "pending" && hasPendingReceipt && (
                   <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "#fff8e6", border: "1px solid rgba(245,158,11,0.25)" }}>
                     <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#d97706" }} />
                     <div className="flex-1">
@@ -378,6 +390,22 @@ export function Subscriptions() {
                       <p style={{ color: "rgba(146,64,14,0.75)", fontSize: "0.78rem", marginTop: "0.2rem", lineHeight: 1.5 }}>
                         We've received your receipt and it's being reviewed by our team. Your subscription will activate once payment is confirmed — usually within 24 hours.
                       </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pending bank transfer — chosen but no receipt submitted yet */}
+                {sub.status === "pending" && !hasPendingReceipt && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "#fff8e6", border: "1px solid rgba(245,158,11,0.25)" }}>
+                    <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#d97706" }} />
+                    <div className="flex-1">
+                      <p style={{ color: "#92400e", fontWeight: 600, fontSize: "0.82rem" }}>Receipt not submitted yet</p>
+                      <p style={{ color: "rgba(146,64,14,0.75)", fontSize: "0.78rem", marginTop: "0.2rem", lineHeight: 1.5 }}>
+                        You selected bank transfer but haven't uploaded a receipt yet. Your subscription won't be reviewed until you do.
+                      </p>
+                      <button onClick={() => setShowReceiptUpload(true)} className="mt-3 px-4 py-2 rounded-full text-xs font-medium" style={{ background: "#d97706", color: "#fff", cursor: "pointer" }}>
+                        Upload transfer receipt
+                      </button>
                     </div>
                   </div>
                 )}
@@ -485,7 +513,7 @@ export function Subscriptions() {
                 })}
               </div>
               <p style={{ color: "#5a6e5c", fontSize: "0.72rem", marginTop: "0.9rem", lineHeight: 1.6 }}>
-                Powered by Paystack / Flutterwave. You'll be charged automatically on the 1st of every month. If a payment fails, your house is marked RED on the driver's manifest and the truck will skip your address until you pay.
+                Powered by Korapay. If a payment fails, your house is marked RED on the driver's manifest and the truck will skip your address until you pay.
               </p>
               <button onClick={handleSubscribe} disabled={subscribing} className="w-full mt-5 py-3.5 rounded-xl font-medium transition-colors hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2" style={{ background: "#1a2e1c", color: "#f7f5f0" }}>
                 {subscribing ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : `Subscribe to ${PLANS[selectedPlan].label} — ${formatNaira(PLANS[selectedPlan].price)}/mo`}

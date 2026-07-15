@@ -11,6 +11,12 @@ import {
 const HERO_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
 const CITY_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/Uyo,%20Akwa%20Ibom%20State_.jpg";
 const AERIAL_IMG = "https://images.unsplash.com/photo-1707008797390-38f13ea40163?w=700&h=900&fit=crop&auto=format";
+// No Play Store listing yet — this links straight to the signed release APK.
+// Same project as HERO_IMG/CITY_IMG above, just a separate public bucket
+// (e.g. "downloads") so the storage dashboard stays tidy. Upload the signed
+// app-release.apk there (Supabase dashboard → Storage → New bucket → toggle
+// "Public bucket" on → upload the file) and this URL just works.
+const APK_DOWNLOAD_URL = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/downloads/ecowaste-uyo.apk";
 
 const STATS = [
   { value: "5,000+", label: "Nigerians served" },
@@ -409,31 +415,47 @@ function PublicHome() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* TODO: replace these href values with your real App Store / Play Store listing URLs once published. */}
+            {/*
+              iOS: still points at a placeholder — replace once you have a real
+              App Store listing.
+
+              Android: no Play Store listing yet, so this links straight to the
+              signed release APK and forces a download via the `download` attr
+              instead of navigating to a store page. Two ways to host the APK
+              file itself — pick one and set APK_DOWNLOAD_URL below:
+
+              1) Supabase Storage (recommended — keeps the ~5-50MB binary out
+                 of your git repo/build, and you can swap the file for a new
+                 version without redeploying the site):
+                   - In the Supabase dashboard: Storage → New bucket → name it
+                     "downloads" → toggle "Public bucket" on.
+                   - Upload app-release.apk into it, e.g. as ecowaste-uyo.apk.
+                   - Copy its public URL (Storage → the file → "Get URL") and
+                     paste it below. It looks like:
+                     https://<project-ref>.supabase.co/storage/v1/object/public/downloads/ecowaste-uyo.apk
+
+              2) Bundle it as a static site asset instead:
+                   - Create a `public/downloads/` folder at the project root
+                     (same level as vite.config.ts) and put the APK there.
+                   - Vite copies everything under `public/` as-is into the
+                     build output, so it's served at /downloads/<filename>.
+                   - Set APK_DOWNLOAD_URL below to "/downloads/ecowaste-uyo.apk".
+
+              Either way: the APK must be a *signed* release build (the one
+              Android Studio produces via Build > Generate Signed App Bundle /
+              APK), not app-release-unsigned.apk — unsigned APKs fail to
+              install on real devices.
+            */}
             <a
-              href="https://apps.apple.com/app/id0000000000"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={APK_DOWNLOAD_URL}
+              download="ecowaste-uyo.apk"
               className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
               style={{ background: "#1a2e1c" }}
             >
               <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
               <div className="text-left">
-                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Download on the</p>
-                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>App Store</p>
-              </div>
-            </a>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.ecowaste.uyo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
-              style={{ background: "#1a2e1c" }}
-            >
-              <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
-              <div className="text-left">
-                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Get it on</p>
-                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>Google Play</p>
+                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Direct download</p>
+                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>Android APK</p>
               </div>
             </a>
           </div>

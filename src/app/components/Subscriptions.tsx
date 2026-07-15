@@ -408,7 +408,7 @@ export function Subscriptions() {
                   <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "#fde8e8" }}>
                     <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#c0392b" }} />
                     <div className="flex-1">
-                      <p style={{ color: "#c0392b", fontWeight: 600, fontSize: "0.82rem" }}>Payment overdue</p>
+                      <p style={{ color: "#c0392b", fontWeight: 600, fontSize: "0.82rem" }}>Payment Pending</p>
                       <p style={{ color: "#9b3026", fontSize: "0.78rem", marginTop: "0.2rem" }}>
                         Your house is marked RED — the truck will bypass you until payment is resolved.
                       </p>
@@ -450,7 +450,7 @@ export function Subscriptions() {
                 </div>
 
                 <p style={{ color: "#5a6e5c", fontSize: "0.72rem", textAlign: "center" }}>
-                  Your plan renews automatically each month. To cancel it, contact support.
+                  Your plan does not renew automatically each month.
                 </p>
               </div>
             </div>

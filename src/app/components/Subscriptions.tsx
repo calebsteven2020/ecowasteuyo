@@ -19,16 +19,16 @@ const PLANS = {
     sub: "Residential",
     icon: Home,
     price: 100, // ₦3,000 – ₦5,000 / month
-    priceRange: "₦8,000",
+    priceRange: "₦100",
     pickupsPerWeek: 1,
-    perks: ["1 fixed pickup every week (4x a month)", "Automatic monthly billing", "WhatsApp/SMS pickup reminders"],
+    perks: ["1 fixed pickup every week (4x a month)", "Automatic monthly billing reminder", "WhatsApp/SMS pickup reminders"],
   },
   commercial: {
     label: "Commercial Plan",
     sub: "Shops / Offices",
     icon: Building2,
-    price: 15000, // ₦10,000 – ₦20,000 / month
-    priceRange: "₦15,000",
+    price: 200, // ₦10,000 – ₦20,000 / month
+    priceRange: "₦200",
     pickupsPerWeek: 2,
     perks: ["2 fixed pickups every week", "Priority truck routing", "Daily commercial pickup available"],
   },

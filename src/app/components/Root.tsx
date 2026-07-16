@@ -6,6 +6,7 @@ import { supabase } from "../../../utils/supabase/client";
 import { useLiteMode } from "../hooks/useLiteMode";
 import { initAuthDeepLinkHandler } from "../../../utils/auth/authDeepLink";
 import { MobileAppBanner } from "./MobileAppBanner";
+import { SupportChat } from "./SupportChat";
 
 export function Root() {
   const location = useLocation();
@@ -32,6 +33,7 @@ export function Root() {
       {!hideHeader && <Header />}
       <main><Outlet /></main>
       {!isAdmin && <MobileAppBanner />}
+      {!isAdmin && <SupportChat />}
     </div>
   );
 }

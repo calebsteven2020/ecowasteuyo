@@ -11,7 +11,6 @@ import { Profile } from "./components/Profile";
 import { Notifications } from "./components/Notifications";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { ResetPassword } from "./components/ResetPassword";
-import { Contact } from "./components/Contact";
 import { Subscriptions } from "./components/Subscriptions";
 
 const ADMIN_EMAIL = "admin@admin.com";
@@ -55,7 +54,6 @@ function UserRoute({ children }: { children: React.ReactNode }) {
 export const router = createBrowserRouter([
   { path: "/login", Component: Login },
   { path: "/reset-password", Component: ResetPassword },
-  { path: "/contact", Component: Contact },
   {
     path: "/",
     Component: Root,

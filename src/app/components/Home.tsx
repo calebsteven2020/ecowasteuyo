@@ -6,7 +6,7 @@ import { APK_DOWNLOAD_URL } from "../constants";
 import {
   ArrowRight, Leaf, Recycle, BarChart3, Calendar,
   CheckCircle2, Star, Bell, LayoutDashboard,
-  LogOut, User, Trash2, MapPin, TrendingUp, Phone,
+  LogOut, User, Trash2, MapPin, TrendingUp, Phone, Mail, Clock, MessageSquare,
   ArrowUpRight, ChevronRight, Repeat, Home as HomeIcon, Building2, Truck, CreditCard, Smartphone,
 } from "lucide-react";
 
@@ -41,6 +41,20 @@ const TESTIMONIALS = [
 
 const CITIES = ["Uyo"];
 
+const CONTACT_INFO = [
+  { icon: Mail, label: "Email us", value: "support@ecowaste.ng", sub: "We reply within 24 hours", bg: "#e8f0e4", ic: "#008751" },
+  { icon: Phone, label: "Call us", value: "+234 800 ECO WASTE", sub: "Mon – Sat, 8am – 6pm WAT", bg: "#dce8dd", ic: "#2d5230" },
+  { icon: MapPin, label: "Head office", value: "Oron Road, Uyo, Akwa Ibom", sub: "By appointment only", bg: "#f0ece4", ic: "#5a6e5c" },
+  { icon: Clock, label: "Operations hours", value: "Mon – Sat: 7am – 7pm", sub: "Sunday: Emergency pickups only", bg: "#e8f0e4", ic: "#008751" },
+];
+
+// Fill in the real profile URLs — left blank on purpose.
+const SOCIAL_LINKS = [
+  { label: "Twitter / X", href: "" },
+  { label: "Instagram", href: "" },
+  { label: "WhatsApp", href: "" },
+];
+
 function PublicHome() {
   const navigate = useNavigate();
 
@@ -66,7 +80,7 @@ function PublicHome() {
               { label: "Plans", href: "/#plans" },
               { label: "Features", href: "#features" },
               { label: "Cities", href: "#cities" },
-              { label: "Contact", href: "/contact" },
+              { label: "Contact", href: "#contact" },
             ].map(item => (
               <a key={item.label} href={item.href}
                 style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.875rem" }}
@@ -449,7 +463,7 @@ function PublicHome() {
               APK), not app-release-unsigned.apk — unsigned APKs fail to
               install on real devices.
             */}
-            <a
+            {/* <a
               href="https://apps.apple.com/app/id0000000000"
               target="_blank"
               rel="noopener noreferrer"
@@ -461,7 +475,7 @@ function PublicHome() {
                 <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Download on the</p>
                 <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>App Store</p>
               </div>
-            </a>
+            </a> */}
             <a
               href={APK_DOWNLOAD_URL}
               download="ecowaste-uyo.apk"
@@ -479,6 +493,75 @@ function PublicHome() {
       </section>
       )}
 
+      {/* CONTACT */}
+      <section id="contact" className="py-20 px-5 sm:px-8" style={{ background: "#f7f5f0" }}>
+        <div className="max-w-6xl mx-auto">
+
+          {/* Hero */}
+          <div className="relative rounded-3xl overflow-hidden mb-12 px-6 py-16 sm:py-20 text-center">
+            <div className="absolute inset-0">
+              <img
+                src="https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/custom.jpg"
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0" style={{ background: "rgba(10,22,11,0.72)" }} />
+            </div>
+            <div className="relative z-10 max-w-xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-medium"
+                style={{ background: "rgba(133,196,138,0.15)", color: "#85c48a", border: "1px solid rgba(133,196,138,0.25)" }}>
+                <MessageSquare className="w-3.5 h-3.5" /> Get in touch
+              </div>
+              <h2 style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontSize: "clamp(1.8rem,4vw,2.6rem)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: "1rem" }}>
+                We're here to help.
+              </h2>
+              <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.9rem", lineHeight: 1.7 }}>
+                Reach us through any of these channels. We're a Nigerian team solving a Nigerian problem — expect fast, friendly responses.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {CONTACT_INFO.map(info => (
+              <div key={info.label} className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid rgba(26,46,28,0.08)" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: info.bg }}>
+                  <info.icon className="w-5 h-5" style={{ color: info.ic }} />
+                </div>
+                <p style={{ color: "#5a6e5c", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.06em", marginBottom: "0.3rem" }}>
+                  {info.label.toUpperCase()}
+                </p>
+                <p style={{ color: "#1a2e1c", fontWeight: 600, fontSize: "0.875rem", lineHeight: 1.4 }}>
+                  {info.value}
+                </p>
+                <p style={{ color: "#5a6e5c", fontSize: "0.75rem", marginTop: "0.25rem" }}>
+                  {info.sub}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Social links */}
+          <div className="rounded-2xl p-6" style={{ background: "#1a2e1c" }}>
+            <p style={{ fontFamily: "var(--font-display)", color: "#f7f5f0", fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.4rem" }}>
+              Follow us on social media
+            </p>
+            <p style={{ color: "rgba(247,245,240,0.5)", fontSize: "0.8rem", marginBottom: "1.25rem" }}>
+              Updates, tips, and real pickup stories in Uyo.
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              {/* href left blank — drop in the real profile URLs */}
+              {SOCIAL_LINKS.map(s => (
+                <a key={s.label} href={s.href || undefined} target="_blank" rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors hover:opacity-80"
+                  style={{ background: "rgba(133,196,138,0.15)", color: "#85c48a", border: "1px solid rgba(133,196,138,0.2)" }}>
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer style={{ background: "#0f1f10", borderTop: "1px solid rgba(247,245,240,0.05)" }} className="px-5 sm:px-8 py-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -491,9 +574,6 @@ function PublicHome() {
           <p style={{ color: "rgba(247,245,240,0.25)", fontSize: "0.75rem" }}>
             © 2026 EcoWaste Ltd.
           </p>
-          <a href="/contact" style={{ color: "rgba(247,245,240,0.35)", fontSize: "0.78rem" }} className="hover:text-white transition-colors">
-            Contact
-          </a>
         </div>
       </footer>
     </div>

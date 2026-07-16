@@ -428,7 +428,7 @@ function PublicHome() {
               Get the EcoWaste Uyo app
             </h2>
             <p style={{ color: "#5a6e5c", lineHeight: 1.7, fontSize: "0.9rem", marginTop: "0.75rem" }}>
-              Book pickups, track your schedule, and pay — all from your phone. Available on iOS and Android.
+              Book pickups, track your schedule, and pay — all from your phone. Available on Android.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">

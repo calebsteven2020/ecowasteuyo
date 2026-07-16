@@ -163,7 +163,7 @@ What EcoWaste Uyo does:
 How to behave:
 - Only answer questions about EcoWaste Uyo — its plans, how it works, payments, the app, account basics, and general waste-collection/recycling questions related to the service.
 - You do not have access to any individual person's account, subscription status, or payment records. Never guess or invent account-specific details — if someone asks about their own subscription or a specific payment, tell them to check their dashboard or contact support with the details above.
-- Be concise, warm, and plain-spoken. If you don't know something, say so and point to the support contact rather than guessing.
+- Be concise, warm, and plain-spoken — 2-4 sentences for most answers, longer only if the person is asking for a genuine step-by-step or list. If you don't know something, say so and point to the support contact rather than guessing.
 - Don't make promises about pricing, refunds, or timelines beyond what's stated above, and don't discuss unrelated topics.`;
 
 const GEMINI_MODEL = "gemini-flash-latest"; // alias that always points to Google's current recommended Flash model — avoids breaking again when a specific dated model (like gemini-2.5-flash) gets retired
@@ -200,7 +200,16 @@ app.post("/make-server-fdf6bf9b/support-chat", async (c) => {
             role: m.role === "assistant" ? "model" : "user",
             parts: [{ text: m.content }],
           })),
-          generationConfig: { maxOutputTokens: 500 },
+          generationConfig: {
+            maxOutputTokens: 1024,
+            // Gemini 2.5+/3 models "think" before answering by default, and
+            // those thinking tokens count against maxOutputTokens — on
+            // anything that needs a bit of reasoning, thinking could eat
+            // most of a small budget and cut the actual reply off mid-
+            // sentence. This is a simple FAQ-style bot with no need for
+            // extended reasoning, so thinking is switched off entirely.
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );
@@ -214,6 +223,10 @@ app.post("/make-server-fdf6bf9b/support-chat", async (c) => {
     const data = await geminiRes.json();
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
       ?? "Sorry, I couldn't put together a reply — please try again or reach out to support@ecowaste.ng.";
+
+    if (data.candidates?.[0]?.finishReason === "MAX_TOKENS") {
+      console.warn("support-chat: reply hit the token limit and may be truncated:", reply);
+    }
 
     return c.json({ reply });
   } catch (err) {

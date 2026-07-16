@@ -463,19 +463,6 @@ function PublicHome() {
               APK), not app-release-unsigned.apk — unsigned APKs fail to
               install on real devices.
             */}
-            {/* <a
-              href="https://apps.apple.com/app/id0000000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
-              style={{ background: "#1a2e1c" }}
-            >
-              <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
-              <div className="text-left">
-                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Download on the</p>
-                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>App Store</p>
-              </div>
-            </a> */}
             <a
               href={APK_DOWNLOAD_URL}
               download="ecowaste-uyo.apk"

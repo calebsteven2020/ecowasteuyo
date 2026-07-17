@@ -1,6 +1,4 @@
-import { projectId } from "../../utils/supabase/info";
-
-export const APK_DOWNLOAD_URL = `https://${projectId}.supabase.co/storage/v1/object/public/downloads/ecowaste-uyo.apk`;
+export const APK_DOWNLOAD_URL = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/downloads/ecowaste-uyo.apk";
 
 // The email treated as admin when profiles.is_admin isn't set for that
 // account yet — a bootstrap/fallback path used across Home.tsx, Login.tsx,

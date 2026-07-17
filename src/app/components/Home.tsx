@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { useAuth } from "../context/AuthContext";
 import { APK_DOWNLOAD_URL, ADMIN_EMAIL } from "../constants";
-import { projectId } from "../../../utils/supabase/info";
 import {
   ArrowRight, Leaf, Recycle, BarChart3, Calendar,
   CheckCircle2, Star, Bell, LayoutDashboard,
@@ -11,9 +10,8 @@ import {
   ArrowUpRight, ChevronRight, Repeat, Home as HomeIcon, Building2, Truck, CreditCard, Smartphone,
 } from "lucide-react";
 
-const BUCKET = `https://${projectId}.supabase.co/storage/v1/object/public/assets`;
-const HERO_IMG   = `${BUCKET}/disposal.jpg`;
-const CITY_IMG   = `${BUCKET}/Uyo,%20Akwa%20Ibom%20State_.jpg`;
+const HERO_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
+const CITY_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/Uyo,%20Akwa%20Ibom%20State_.jpg";
 const AERIAL_IMG = "https://images.unsplash.com/photo-1707008797390-38f13ea40163?w=700&h=900&fit=crop&auto=format";
 
 const STATS = [
@@ -503,7 +501,7 @@ function PublicHome() {
           <div className="relative rounded-3xl overflow-hidden mb-12 px-6 py-16 sm:py-20 text-center">
             <div className="absolute inset-0">
               <img
-                src={`${BUCKET}/custom.jpg`}
+                src="https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/custom.jpg"
                 alt=""
                 className="w-full h-full object-cover"
               />

@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import { projectId } from "../../../utils/supabase/info";
 import {
   Leaf, Mail, Phone, MapPin,
   MessageSquare, Clock
@@ -110,7 +109,7 @@ export function Contact() {
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src={`https://${projectId}.supabase.co/storage/v1/object/public/assets/custom.jpg`}
+            src="https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/custom.jpg"
             alt="Contact hero"
             className="w-full h-full object-cover"
           />

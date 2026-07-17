@@ -12,8 +12,7 @@ import { Notifications } from "./components/Notifications";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { ResetPassword } from "./components/ResetPassword";
 import { Subscriptions } from "./components/Subscriptions";
-
-const ADMIN_EMAIL = "admin@admin.com";
+import { ADMIN_EMAIL } from "./constants";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();

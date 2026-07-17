@@ -1,7 +1,15 @@
-// Korapay public key — get yours from the Korapay dashboard (Settings → API Keys).
-// This is safe to expose client-side (it's the *public* key, used only to open
-// the checkout widget). Replace the placeholder below before going live.
-export const KORAPAY_PUBLIC_KEY = "pk_live_EkaXCXDEchCvNxgXz1sqqoQ4ri4L73ccz4HZ69oS";
+// Korapay public key — now comes from .env (VITE_KORAPAY_PUBLIC_KEY) instead
+// of being hardcoded. This is safe to expose client-side either way (it's
+// the *public* key, used only to open the checkout widget) — moving it to
+// .env is about keeping it out of git history and easy to swap between
+// test/live keys per environment, not about hiding it.
+export const KORAPAY_PUBLIC_KEY = import.meta.env.VITE_KORAPAY_PUBLIC_KEY;
+
+if (!KORAPAY_PUBLIC_KEY) {
+  throw new Error(
+    "Missing VITE_KORAPAY_PUBLIC_KEY. Copy .env.example to .env and fill in your Korapay public key (Korapay dashboard → Settings → API Keys)."
+  );
+}
 
 // Bank account details shown to customers who choose manual bank transfer.
 // Update these to your agency's real dedicated/settlement account.

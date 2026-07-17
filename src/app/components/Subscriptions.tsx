@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
 import { useAuth } from "../context/AuthContext";
-import { payWithKorapay, newPaymentReference } from "../../../utils/korapay/checkout";import { BANK_TRANSFER_DETAILS } from "../../../utils/korapay/info";
+import { payWithKorapay, newPaymentReference } from "../../../utils/korapay/checkout";
+import { BANK_TRANSFER_DETAILS } from "../../../utils/korapay/info";
 import { isProfileComplete, PROFILE_INCOMPLETE_MESSAGE } from "../../../utils/profile/isProfileComplete";
 
 const formatNaira = (n: number) => "₦" + n.toLocaleString("en-NG");

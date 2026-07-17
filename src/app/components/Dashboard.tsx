@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Zap, Recycle, Clock, ChevronRight, Leaf, LogOut, X } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
+import { projectId } from "../../../utils/supabase/info";
 import { useAuth } from "../context/AuthContext";
 import { OnboardingTour } from "./OnboardingTour";
 
@@ -97,7 +98,7 @@ export function Dashboard() {
     </div>
   );
 
-  const HERO_IMG = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
+  const HERO_IMG = `https://${projectId}.supabase.co/storage/v1/object/public/assets/disposal.jpg`;
 
   return (
     <div className="min-h-svh" style={{ background: "#f0ede8", fontFamily: "var(--font-body)" }}>

@@ -10,6 +10,7 @@ import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, PieChart, Pie, Cell } from "recharts";
+import { ADMIN_EMAIL } from "../constants";
 
 interface Pickup {
   id: string; user_id: string; waste_type: string; address: string;
@@ -919,6 +920,27 @@ export function AdminDashboard() {
   };
 
   // Admin confirms a manual bank transfer after checking the uploaded receipt
+  const sendPushNotification = async (userId: string, title: string, body: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      await fetch(`https://${projectId}.supabase.co/functions/v1/server/make-server-fdf6bf9b/send-push`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: publicAnonKey,
+        },
+        body: JSON.stringify({ userId, title, body }),
+      });
+    } catch (err) {
+      // Push is a nice-to-have on top of the in-app notification row above
+      // (which already succeeded) — never let a push failure surface as an
+      // error on the admin's approve/reject action itself.
+      console.error("[push] send-push failed:", err);
+    }
+  };
+
   const approvePayment = async (payment: any) => {
     const { data: { user: adminUser } } = await supabase.auth.getUser();
     const todayDate = new Date();
@@ -955,6 +977,11 @@ export function AdminDashboard() {
       message: `Your bank transfer of ₦${Number(payment.amount).toLocaleString("en-NG")} has been verified. Your house is GREEN and back on the route.`,
       type: "success",
     });
+    sendPushNotification(
+      payment.user_id,
+      "Payment confirmed ✅",
+      `Your bank transfer of ₦${Number(payment.amount).toLocaleString("en-NG")} has been verified. You're back on the route.`
+    );
 
     setPayments(prev => prev.map(p => p.id === payment.id ? { ...p, status: "success" } : p));
     setViewReceipt(null);
@@ -969,6 +996,11 @@ export function AdminDashboard() {
       message: "We couldn't confirm your bank transfer from the receipt provided. Please re-upload a clearer photo or contact support.",
       type: "warning",
     });
+    sendPushNotification(
+      payment.user_id,
+      "Receipt could not be verified ⚠️",
+      "We couldn't confirm your bank transfer. Please re-upload a clearer receipt or contact support."
+    );
     setPayments(prev => prev.map(p => p.id === payment.id ? { ...p, status: "rejected" } : p));
     setViewReceipt(null);
     toast.success("Payment rejected — customer notified.");
@@ -997,7 +1029,7 @@ export function AdminDashboard() {
       if (!session) { setLoading(false); return; }
 
       // Step 2: verify admin by email (is_admin checked via RLS)
-      if (session.user.email !== "admin@admin.com") {
+      if (session.user.email !== ADMIN_EMAIL) {
         setLoading(false);
         return;
       }

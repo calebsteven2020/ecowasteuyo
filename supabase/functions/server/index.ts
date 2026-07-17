@@ -48,7 +48,7 @@ app.post("/make-server-fdf6bf9b/create-agent", async (c) => {
       .eq("id", user.id)
       .single();
 
-    const isAdmin = profile?.is_admin === true || user.email === "admin@admin.com";
+    const isAdmin = profile?.is_admin === true || user.email === (Deno.env.get("ADMIN_EMAIL") ?? "admin@admin.com");
     if (!isAdmin) return c.json({ error: "Forbidden — admin only" }, 403);
 
     // Get agent details from request body
@@ -108,7 +108,7 @@ app.delete("/make-server-fdf6bf9b/delete-agent", async (c) => {
     );
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) return c.json({ error: "Unauthorized" }, 401);
-    if (user.email !== "admin@admin.com") {
+    if (user.email !== (Deno.env.get("ADMIN_EMAIL") ?? "admin@admin.com")) {
       const { data: profile } = await supabaseAdmin.from("profiles").select("is_admin").eq("id", user.id).single();
       if (!profile?.is_admin) return c.json({ error: "Forbidden" }, 403);
     }
@@ -125,6 +125,231 @@ app.delete("/make-server-fdf6bf9b/delete-agent", async (c) => {
 
     return c.json({ success: true });
   } catch (err) {
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
+// ── Push notifications (Firebase Cloud Messaging) ───────────────────
+// Sends via FCM's current HTTP v1 API, which needs a short-lived OAuth2
+// access token minted from a Firebase service account — Google retired
+// the old "legacy server key" approach, so there's no simple static API
+// key here. Set the *entire* service account JSON as one secret:
+//
+//   supabase secrets set FCM_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"...","private_key":"...","client_email":"...",...}'
+//
+// Get that JSON from: Firebase console → Project settings → Service
+// accounts → Generate new private key (downloads a .json file — paste its
+// full contents as the secret value, on one line).
+//
+// Everything below is a no-op (logged, never throws) until that secret is
+// set, so it never blocks the admin action or cron job that triggered it.
+
+let cachedFcmToken: { token: string; expiresAt: number } | null = null;
+
+function base64UrlEncode(bytes: Uint8Array): string {
+  let str = "";
+  for (const b of bytes) str += String.fromCharCode(b);
+  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function getFcmAccessToken(): Promise<{ token: string; projectId: string } | null> {
+  const raw = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
+  if (!raw) {
+    console.error("[push] FCM_SERVICE_ACCOUNT_JSON is not set — skipping send");
+    return null;
+  }
+
+  let serviceAccount: { project_id: string; client_email: string; private_key: string };
+  try {
+    serviceAccount = JSON.parse(raw);
+  } catch {
+    console.error("[push] FCM_SERVICE_ACCOUNT_JSON is not valid JSON");
+    return null;
+  }
+  const projectId = serviceAccount.project_id;
+
+  // Reuse the token until shortly before it expires (Google issues them
+  // valid for 1hr) instead of minting a fresh one on every single send.
+  if (cachedFcmToken && cachedFcmToken.expiresAt > Date.now() + 30_000) {
+    return { token: cachedFcmToken.token, projectId };
+  }
+
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const enc = new TextEncoder();
+    const headerB64 = base64UrlEncode(enc.encode(JSON.stringify({ alg: "RS256", typ: "JWT" })));
+    const claimsB64 = base64UrlEncode(enc.encode(JSON.stringify({
+      iss: serviceAccount.client_email,
+      scope: "https://www.googleapis.com/auth/firebase.messaging",
+      aud: "https://oauth2.googleapis.com/token",
+      exp: now + 3600,
+      iat: now,
+    })));
+    const signingInput = `${headerB64}.${claimsB64}`;
+
+    const pemBody = serviceAccount.private_key
+      .replace(/-----BEGIN PRIVATE KEY-----/, "")
+      .replace(/-----END PRIVATE KEY-----/, "")
+      .replace(/\s/g, "");
+    const keyBytes = Uint8Array.from(atob(pemBody), ch => ch.charCodeAt(0));
+
+    const cryptoKey = await crypto.subtle.importKey(
+      "pkcs8",
+      keyBytes.buffer,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, enc.encode(signingInput));
+    const jwt = `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
+
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: jwt,
+      }),
+    });
+
+    if (!tokenRes.ok) {
+      console.error("[push] FCM token exchange failed:", tokenRes.status, await tokenRes.text());
+      return null;
+    }
+
+    const tokenData = await tokenRes.json();
+    cachedFcmToken = { token: tokenData.access_token, expiresAt: Date.now() + tokenData.expires_in * 1000 };
+    return { token: tokenData.access_token, projectId };
+  } catch (err) {
+    console.error("[push] failed to mint FCM access token:", err);
+    return null;
+  }
+}
+
+async function sendPushToUser(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  userId: string,
+  title: string,
+  body: string,
+  data: Record<string, string> = {}
+): Promise<void> {
+  const auth = await getFcmAccessToken();
+  if (!auth) return;
+
+  const { data: tokens, error } = await supabaseAdmin
+    .from("push_tokens")
+    .select("token")
+    .eq("user_id", userId);
+
+  if (error) { console.error("[push] failed to look up tokens:", error); return; }
+  if (!tokens || tokens.length === 0) return;
+
+  for (const { token } of tokens) {
+    const res = await fetch(`https://fcm.googleapis.com/v1/projects/${auth.projectId}/messages:send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ message: { token, notification: { title, body }, data } }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[push] send failed for a token:`, errText);
+      // Token belongs to an uninstalled app / expired registration —
+      // stop trying it so it doesn't just fail silently forever.
+      if (errText.includes("UNREGISTERED") || errText.includes("NOT_FOUND")) {
+        await supabaseAdmin.from("push_tokens").delete().eq("token", token);
+      }
+    }
+  }
+}
+
+// ── Send a push notification to one person ──────────────────────────
+// Called from AdminDashboard after approving/rejecting a bank-transfer
+// receipt. Admin-only — verified the same way create-agent above is.
+app.post("/make-server-fdf6bf9b/send-push", async (c) => {
+  try {
+    const authHeader = c.req.header("Authorization");
+    if (!authHeader) return c.json({ error: "Unauthorized" }, 401);
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !user) return c.json({ error: "Unauthorized" }, 401);
+
+    const { data: profile } = await supabaseAdmin.from("profiles").select("is_admin").eq("id", user.id).single();
+    const isAdmin = profile?.is_admin === true || user.email === (Deno.env.get("ADMIN_EMAIL") ?? "admin@admin.com");
+    if (!isAdmin) return c.json({ error: "Forbidden — admin only" }, 403);
+
+    const { userId, title, body, data } = await c.req.json();
+    if (!userId || !title || !body) return c.json({ error: "userId, title and body are required" }, 400);
+
+    await sendPushToUser(supabaseAdmin, userId, title, body, data ?? {});
+    return c.json({ success: true });
+  } catch (err) {
+    console.error("send-push error:", err);
+    return c.json({ error: String(err) }, 500);
+  }
+});
+
+// ── Day-of pickup reminders (scheduled, not called from the app) ────
+// Meant to be triggered once a day by Supabase's pg_cron (see the SQL at
+// the bottom of supabase/schema.sql) rather than by a person, so it's
+// protected by a shared secret instead of a login:
+//   supabase secrets set CRON_SECRET=some-long-random-string
+// Reminds everyone with a one-off pickup (see the `pickups` table —
+// booked via BookPickup.tsx) scheduled for today. Subscriptions don't
+// have a stored weekly pickup day in the schema (only a manual "trash
+// ready" toggle), so there's nothing to remind subscribers about yet —
+// that'd need a real pickup-day field added first.
+app.post("/make-server-fdf6bf9b/send-pickup-reminders", async (c) => {
+  try {
+    const cronSecret = c.req.header("x-cron-secret");
+    if (!cronSecret || cronSecret !== Deno.env.get("CRON_SECRET")) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Matches the "MMM dd, yyyy" format BookPickup.tsx saves pickup_date
+    // as (e.g. "Jul 16, 2026") — West Africa Time, since that's where the
+    // service operates.
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Africa/Lagos" }));
+    const today = `${months[now.getMonth()]} ${String(now.getDate()).padStart(2, "0")}, ${now.getFullYear()}`;
+
+    const { data: pickups, error } = await supabaseAdmin
+      .from("pickups")
+      .select("user_id, pickup_time")
+      .eq("status", "scheduled")
+      .eq("pickup_date", today);
+
+    if (error) return c.json({ error: error.message }, 500);
+
+    for (const p of pickups ?? []) {
+      await sendPushToUser(
+        supabaseAdmin,
+        p.user_id,
+        "Pickup today! 🗑️",
+        `Your EcoWaste Uyo pickup is scheduled for today${p.pickup_time ? ` around ${p.pickup_time}` : ""} — please have your waste ready.`
+      );
+    }
+
+    return c.json({ success: true, sent: pickups?.length ?? 0 });
+  } catch (err) {
+    console.error("send-pickup-reminders error:", err);
     return c.json({ error: String(err) }, 500);
   }
 });

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Leaf, Eye, EyeOff, ArrowLeft, ArrowRight, KeyRound } from "lucide-react";
 import { supabase } from "../../../utils/supabase/client";
 import { isNativeApp } from "../../../utils/perf/liteMode";
+import { ADMIN_EMAIL } from "../constants";
 
 const FOREST_IMG = "https://images.unsplash.com/photo-1707008797390-38f13ea40163?w=900&h=1200&fit=crop&auto=format";
 
@@ -168,7 +169,7 @@ export function Login() {
         toast.success("Welcome back!");
         const userId = data.user?.id ?? "";
         const { data: profileData } = await supabase.from("profiles").select("is_admin").eq("id", userId).single();
-        if (profileData?.is_admin || formData.email.toLowerCase().trim() === "admin@admin.com") {
+        if (profileData?.is_admin || formData.email.toLowerCase().trim() === ADMIN_EMAIL) {
           navigate("/admin");
         } else {
           navigate("/dashboard");

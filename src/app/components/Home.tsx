@@ -2,7 +2,8 @@ import { useNavigate } from "react-router";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { useAuth } from "../context/AuthContext";
-import { APK_DOWNLOAD_URL } from "../constants";
+import { APK_DOWNLOAD_URL, ADMIN_EMAIL } from "../constants";
+import { projectId } from "../../../utils/supabase/info";
 import {
   ArrowRight, Leaf, Recycle, BarChart3, Calendar,
   CheckCircle2, Star, Bell, LayoutDashboard,
@@ -10,8 +11,9 @@ import {
   ArrowUpRight, ChevronRight, Repeat, Home as HomeIcon, Building2, Truck, CreditCard, Smartphone,
 } from "lucide-react";
 
-const HERO_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/disposal.jpg";
-const CITY_IMG   = "https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/Uyo,%20Akwa%20Ibom%20State_.jpg";
+const BUCKET = `https://${projectId}.supabase.co/storage/v1/object/public/assets`;
+const HERO_IMG   = `${BUCKET}/disposal.jpg`;
+const CITY_IMG   = `${BUCKET}/Uyo,%20Akwa%20Ibom%20State_.jpg`;
 const AERIAL_IMG = "https://images.unsplash.com/photo-1707008797390-38f13ea40163?w=700&h=900&fit=crop&auto=format";
 
 const STATS = [
@@ -428,7 +430,7 @@ function PublicHome() {
               Get the EcoWaste Uyo app
             </h2>
             <p style={{ color: "#5a6e5c", lineHeight: 1.7, fontSize: "0.9rem", marginTop: "0.75rem" }}>
-              Book pickups, track your schedule, and pay — all from your phone. Available on Android.
+              Book pickups, track your schedule, and pay — all from your phone. Available on iOS and Android.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -464,6 +466,19 @@ function PublicHome() {
               install on real devices.
             */}
             <a
+              href="https://apps.apple.com/app/id0000000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
+              style={{ background: "#1a2e1c" }}
+            >
+              <Smartphone className="w-6 h-6 flex-shrink-0" style={{ color: "#f7f5f0" }} />
+              <div className="text-left">
+                <p style={{ color: "rgba(247,245,240,0.6)", fontSize: "0.6rem" }}>Download on the</p>
+                <p style={{ color: "#f7f5f0", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1.1 }}>App Store</p>
+              </div>
+            </a>
+            <a
               href={APK_DOWNLOAD_URL}
               download="ecowaste-uyo.apk"
               className="flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:opacity-90"
@@ -488,7 +503,7 @@ function PublicHome() {
           <div className="relative rounded-3xl overflow-hidden mb-12 px-6 py-16 sm:py-20 text-center">
             <div className="absolute inset-0">
               <img
-                src="https://xhsqygawsgsnpfwemczi.supabase.co/storage/v1/object/public/assets/custom.jpg"
+                src={`${BUCKET}/custom.jpg`}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -570,7 +585,7 @@ function PublicHome() {
 function LoggedInHome() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  if (user?.email === "admin@admin.com") return null;
+  if (user?.email === ADMIN_EMAIL) return null;
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "there";
   const greeting = () => {
@@ -675,7 +690,7 @@ export function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user?.email === "admin@admin.com") {
+    if (!loading && user?.email === ADMIN_EMAIL) {
       navigate("/admin", { replace: true });
     }
   }, [user, loading, navigate]);
@@ -685,7 +700,7 @@ export function Home() {
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
   );
-  if (user?.email === "admin@admin.com") return (
+  if (user?.email === ADMIN_EMAIL) return (
     <div className="min-h-svh flex items-center justify-center" style={{ background: "#f7f5f0" }}>
       <div className="w-8 h-8 rounded-full border-2 border-[#008751] border-t-transparent animate-spin" />
     </div>
